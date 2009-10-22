@@ -1,4 +1,8 @@
 from django.conf import settings
 
+REGISTRY = []
+
 def register(model, modeltranslation):
-    pass
+    REGISTRY.append((model, modeltranslation))
+    
+    
