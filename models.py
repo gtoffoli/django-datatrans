@@ -5,7 +5,7 @@ from hashlib import sha1
 
 class KeyValueManager(models.Manager):
     def lookup(self, key, language):
-        digest = sha1(key).hexdigest()
+        digest = sha1(key.encode('utf-8')).hexdigest()
         keyvalue, created = self.get_or_create(digest=digest, language=language, defaults={'value': key})
         return keyvalue.value
 
