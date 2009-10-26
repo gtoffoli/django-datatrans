@@ -1,0 +1,27 @@
+{% extends "datatrans/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Models to translate" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Models to translate" %}</h1>
+<p>
+	<a href="{% url datatrans_make_messages %}">{% trans "Scan models" %}</a>
+</p>
+<table border="1">
+	<tr>
+		<th>{% trans "Model name" %}</th>
+		<th>{% trans "Fields" %}</th>
+		<th>{% trans "Translations" %}</th>
+		<th>{% trans "New entries" %}</th>
+	</tr>
+	{% for entry in models %}
+	<tr>
+		<td>{{ entry.1 }}</td>
+		<td>{% for field in entry.2 %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+		<td>{% for lang in languages %}<a href="{% url datatrans_model_detail entry.0 lang.0 %}">{{ lang.1 }}</a> {% endfor %}</td>
+		<td>{{ entry.3 }} {{ entry.3|pluralize:_("new entry,new entries") }}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+{% endblock %}

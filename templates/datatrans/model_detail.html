@@ -1,0 +1,29 @@
+{% extends "datatrans/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Translations for" %} {{ model }} - {{ block.super }}{% endblock %}
+{% block content %}
+<h1>{% trans "Translations for" %} {{ model }}</h1>
+
+<form method="post" action=".">
+{% for field in fields %}
+<h2>{{ field.name }}</h2>
+
+	<table border="1">
+		<tr>
+			<th>{{ original_language }}</th>
+			<th>{{ other_language }}</th>
+		</tr>
+		{% for item in field.items %}
+		<tr style="{% if not item.translation.edited %}background: #FF0;{% endif %}">
+			<td>{{ item.original.value }}</td>
+			<td><textarea name="translation_{{ item.translation.pk }}" cols="60" rows="4">{{ item.translation.value }}</textarea></td>
+		</tr>
+		{% endfor %}
+	</table>
+	<input type="submit" value="{% trans "Save" %}" />
+
+
+{% endfor %}
+</form>
+
+{% endblock %}

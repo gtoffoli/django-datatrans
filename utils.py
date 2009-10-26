@@ -16,6 +16,23 @@ class FieldDescriptor(object):
     def __set__(self, instance, value):
         instance.__dict__[self.name] = value
 
+
+def get_registry():
+    return REGISTRY
+
+
+def get_default_language():
+    lang = settings.LANGUAGE_CODE
+    default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
+    if len(default) == 0:
+        # when not found, take first part ('en' instead of 'en-us')
+        lang = lang.split('-')[0]
+        default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
+    if len(default) == 0:
+        return lang
+    return default[0]
+
+
 def register(model, modeltranslation):
     '''
     modeltranslation must be a class with the following attribute:
