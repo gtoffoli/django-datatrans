@@ -4,9 +4,24 @@ from django.core.urlresolvers import reverse
 from django.template.context import RequestContext
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.contenttypes.models import ContentType
 
 from datatrans import utils
 from datatrans.models import KeyValue
+
+def _get_model_slug(model):
+        ct = ContentType.objects.get_for_model(model)
+        return u'%s.%s' % (ct.app_label, ct.model)
+
+def _get_model_entry(slug):
+    app_label, model_slug = slug.split('.')
+    ct = ContentType.objects.get(app_label=app_label, model=model_slug)
+    model_class = ct.model_class()
+    registry = utils.get_registry()
+    entry = [e for e in registry if e[0] == model_class]
+    if len(entry) == 0:
+        raise Http404(u'No registered model found for given query.')
+    return entry[0]
 
 def model_list(request):
     registry = utils.get_registry()
@@ -16,7 +31,11 @@ def model_list(request):
         keyvalues = KeyValue.objects.for_model(*entry).exclude(language=default_lang).filter(edited=False)
         return keyvalues.count()
 
-    models = [(i, u'%s' % registry[i][0]._meta.verbose_name, registry[i][1].fields, _unedited_count(registry[i])) for i in range(len(registry))]
+
+    models = [(_get_model_slug(registry[i][0]),
+               u'%s' % registry[i][0]._meta.verbose_name,
+               registry[i][1].fields,
+               _unedited_count(registry[i])) for i in range(len(registry))]
 
     languages = [l for l in settings.LANGUAGES if l[0] != default_lang]
 
@@ -24,7 +43,7 @@ def model_list(request):
 
     return render_to_response('datatrans/model_list.html', context, context_instance=RequestContext(request))
 
-def model_detail(request, index, language):
+def model_detail(request, model, language):
     '''
     The context structure is defined as follows:
 
@@ -35,10 +54,21 @@ def model_detail(request, index, language):
                          }
               }
     '''
-    try:
-        entry = utils.get_registry()[int(index)]
-    except:
-        raise Http404(u'No registered model found for given index.')
+
+    if request.method == 'POST':
+        translations = [(KeyValue.objects.get(pk=int(k.split('_')[1])), v) for k, v in request.POST.items() if 'translation_' in k]
+        section = [k for k, v in request.POST.items() if 'section_' in k]
+        section = '#%s' % section[0] if len(section) > 0 else ''
+        for keyvalue, translation in translations:
+            empty = 'empty_%d' % keyvalue.pk in request.POST
+            if translation != '' or empty:
+                if keyvalue.value != translation:
+                    keyvalue.value = translation
+                    keyvalue.edited = True
+                    keyvalue.save()
+        return HttpResponseRedirect(reverse('datatrans_model_detail', args=(model, language)) + section)
+
+    entry = _get_model_entry(model)
 
     default_lang = utils.get_default_language()
     model_name = u'%s' % entry[0]._meta.verbose_name

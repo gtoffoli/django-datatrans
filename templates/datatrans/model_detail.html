@@ -1,6 +1,9 @@
 {% extends "datatrans/base.html" %}
 {% load i18n %}
+{% load adminmedia %}
 {% block title %}{% trans "Translations for" %} {{ model }} - {{ block.super }}{% endblock %}
+{% block breadcrumbs %}{{ block.super }} &rsaquo; {% trans "Translations for" %} {{ model }}{% endblock %}
+
 {% block content %}
 <h1>{% trans "Translations for" %} {{ model }}</h1>
 
@@ -8,20 +11,31 @@
 {% for field in fields %}
 <h2>{{ field.name }}</h2>
 
-	<table border="1">
-		<tr>
-			<th>{{ original_language }}</th>
-			<th>{{ other_language }}</th>
-		</tr>
-		{% for item in field.items %}
-		<tr style="{% if not item.translation.edited %}background: #FF0;{% endif %}">
-			<td>{{ item.original.value }}</td>
-			<td><textarea name="translation_{{ item.translation.pk }}" cols="60" rows="4">{{ item.translation.value }}</textarea></td>
-		</tr>
-		{% endfor %}
-	</table>
-	<input type="submit" value="{% trans "Save" %}" />
+<div class="module">
+<table>
+	<tr>
+		<th>{{ original_language }}</th>
+		<th>{{ other_language }}</th>
+		<th>&nbsp;</th>
+	</tr>
+	{% for item in field.items %}
+	<tr style="{% if not item.translation.edited %}background: #DEF;{% endif %}">
+		<td><a name="section_{{ item.translation.pk }}"></a><textarea readonly="readonly" cols="80" rows="6">{{ item.original.value }}</textarea></td>
+		<td>
+			<textarea name="translation_{{ item.translation.pk }}" cols="80" rows="6">{% if item.translation.edited %}{{ item.translation.value }}{% endif %}</textarea>
+			<br /><input type="checkbox" name="empty_{{ item.translation.pk }}" {% ifequal item.translation.value "" %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
+			{% trans "empty" %}
+		</td>
+		<td><input type="submit" value="{% trans "Save" %}" name="section_{{ item.translation.pk }}" /></td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
 
+
+<div class="submit-row" >
+	<input type="submit" value="{% trans "Save" %}" class="default" />
+</div>
 
 {% endfor %}
 </form>
