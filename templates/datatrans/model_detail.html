@@ -6,15 +6,15 @@
 
 {% block content %}
 <h1>{% trans "Translations for" %} {{ model }}</h1>
-<p>
+<div style="width: 128px; position: fixed; right: 8px; top: 72px; border: 1px solid #CCC; padding: 8px; background: #FFF;">
 	{% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
 	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
 	     <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
 	</div>
-</p>
+</div>
 {% if first_unedited %}
 <p>
-	<a href="#section_{{ first_unedited.pk }}">{% trans "Go to first unedited translation" %}</a>
+	<a href="#section_{{ first_unedited.pk }}">{% trans "Jump to first translation to do" %}</a>
 </p>
 {% endif %}
 <p>
@@ -26,9 +26,9 @@
 </p>
 <form method="post" action=".">
 {% for field in fields %}
-<h2>{{ field.name }}</h2>
-<div class="module">
-<table>
+<h2>{{ field.verbose_name }}</h2>
+
+<table style="border: 1px solid #CCC;">
 	<tr>
 		<th>&nbsp;</th>
 		<th>{{ original_language }}</th>
@@ -38,17 +38,23 @@
 	{% for item in field.items %}
 	<tr id="section_{{ item.translation.pk }}" style="{% if not item.translation.edited %}background: #DEF;{% endif %}">
 		<td><a href="#section_{{ item.translation.pk }}" title="{% trans "Link to this translation" %}">¶</a></td>
-		<td><textarea readonly="readonly" cols="80" rows="6">{{ item.original.value }}</textarea></td>
 		<td>
-			<textarea name="translation_{{ item.translation.pk }}" cols="80" rows="6">{% if item.translation.edited %}{{ item.translation.value }}{% endif %}</textarea>
-			<br /><input type="checkbox" name="empty_{{ item.translation.pk }}" {% ifequal item.translation.value "" %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
+			<textarea readonly="readonly" cols="60" rows="6">{{ item.original.value }}</textarea>
+			<br />{% if item.translation.edited %}{% trans "done" %}{% else %}{% trans "to do" %}{% endif %}
+		</td>
+		<td>
+			<textarea name="translation_{{ item.translation.pk }}" cols="60" rows="6">{% if item.translation.edited %}{{ item.translation.value }}{% endif %}</textarea>
+			<br />
+			<input type="checkbox" name="empty_{{ item.translation.pk }}" {% ifequal item.translation.value "" %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
 			{% trans "empty" %}
+			<input type="checkbox" name="ignore_{{ item.translation.pk }}" {% ifequal item.translation.value item.original.value %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
+			{% trans "ignore" %}
 		</td>
 		<td><input type="submit" value="{% trans "Save" %}" name="section_{{ item.translation.pk }}" /></td>
 	</tr>
 	{% endfor %}
 </table>
-</div>
+
 
 
 <div class="submit-row" >
