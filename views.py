@@ -105,3 +105,17 @@ def model_detail(request, model, language):
 def make_messages(request):
     utils.make_messages()
     return HttpResponseRedirect(reverse('datatrans_model_list'))
+
+def obsolete_list(request):
+    from django.db.models import Q
+
+    default_lang = utils.get_default_language()
+    all_obsoletes = utils.find_obsoletes().order_by('digest')
+    obsoletes = all_obsoletes.filter(Q(edited=True) | Q(language=default_lang))
+
+    if request.method == 'POST':
+        all_obsoletes.delete()
+        return HttpResponseRedirect(reverse('datatrans_obsolete_list'))
+
+    context = {'obsoletes': obsoletes}
+    return render_to_response('datatrans/obsolete_list.html', context, context_instance=RequestContext(request))

@@ -5,43 +5,38 @@
 {% block coltype %}colMS{% endblock %}
 {% block bodyclass %}dashboard{% endblock %}
 {% block content %}
+
 <h1>{% trans "Models to translate" %}</h1>
 
-
-
-
 <div id="content-main">
-<p>
-	<a href="{% url datatrans_make_messages %}">{% trans "Scan models" %}</a>
-</p>
+	<p>
+		<a class="button" href="{% url datatrans_make_messages %}">{% trans "Scan models" %}</a>
+		<a class="button" href="{% url datatrans_obsolete_list %}">{% trans "Obsolete translations" %}</a>
+	</p>
+	<div class="module">
+		<table>
+		    <caption><span class="section">{% trans "Models to translate " %}</span></caption>
+		    {% for entry in models %}
 
-    <div class="module">
-    <table>
-	    <caption><span class="section">{% trans "Models to translate " %}</span></caption>
-	    {% for entry in models %}
+		        <tr>
+		            <th scope="row">
+		            	{{ entry.1 }}
+		            	({% for field in entry.2 %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})
 
-	        <tr>
-	            <th scope="row">
-	            	{{ entry.1 }}
-	            	({% for field in entry.2 %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})
+		            </th>
+		            <td>
+		            	{{ entry.3.0 }}%
+		            </td>
+		            <td>
+		            	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
+						     <div style="margin: 0; padding: 0; width: {% widthratio entry.3.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
+						</div>
+		            </td>
+		            {% for lang in languages %}<td><a href="{% url datatrans_model_detail entry.0 lang.0 %}">{{ lang.1 }}</a></td>{% endfor %}
+		        </tr>
 
-	            </th>
-	            <td>
-	            	{{ entry.3.0 }}%
-	            </td>
-	            <td>
-	            	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
-					     <div style="margin: 0; padding: 0; width: {% widthratio entry.3.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
-					</div>
-	            </td>
-	            {% for lang in languages %}<td><a href="{% url datatrans_model_detail entry.0 lang.0 %}">{{ lang.1 }}</a></td>{% endfor %}
-	        </tr>
-
-	    {% endfor %}
+		    {% endfor %}
 	    </table>
-    </div>
-
-
+	</div>
 </div>
-
 {% endblock %}

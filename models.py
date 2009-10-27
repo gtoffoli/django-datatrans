@@ -3,10 +3,12 @@ from django.conf import settings
 
 from hashlib import sha1
 
+def make_digest(key):
+    return sha1(key.encode('utf-8')).hexdigest()
 
 class KeyValueManager(models.Manager):
     def get_keyvalue(self, key, language):
-        digest = sha1(key.encode('utf-8')).hexdigest()
+        digest = make_digest(key)
         keyvalue, created = self.get_or_create(digest=digest, language=language, defaults={'value': key})
         return keyvalue
 
@@ -20,9 +22,9 @@ class KeyValueManager(models.Manager):
         for object in objects:
             if modelfield is None:
                 for field in modeltranslation.fields:
-                    digests.append(sha1(object.__dict__[field].encode('utf-8')).hexdigest())
+                    digests.append(make_digest(object.__dict__[field]))
             else:
-                digests.append(sha1(object.__dict__[modelfield].encode('utf-8')).hexdigest())
+                digests.append(make_digest(object.__dict__[modelfield]))
 
         return self.filter(digest__in=digests)
 
