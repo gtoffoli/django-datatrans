@@ -38,13 +38,15 @@ def model_list(request):
     registry = utils.get_registry()
 
     default_lang = utils.get_default_language()
+    languages = [l for l in settings.LANGUAGES if l[0] != default_lang]
 
     models = [(_get_model_slug(registry[i][0]),
                u'%s' % registry[i][0]._meta.verbose_name,
                _get_verbose_fields(registry[i][0], registry[i][1].fields),
-               _get_model_stats(*registry[i])) for i in range(len(registry))]
+               _get_model_stats(*registry[i]),
+               [(l[0], l[1], _get_model_stats(registry[i][0], registry[i][1], filter=lambda x: x.filter(language=l[0]))) for l in languages]) for i in range(len(registry))]
 
-    languages = [l for l in settings.LANGUAGES if l[0] != default_lang]
+    print repr(models)
 
     context = {'models': models, 'languages': languages}
 
