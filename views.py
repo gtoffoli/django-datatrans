@@ -23,9 +23,9 @@ def _get_model_entry(slug):
         raise Http404(u'No registered model found for given query.')
     return entry[0]
 
-def _get_model_stats(model, modeltranslation):
+def _get_model_stats(model, modeltranslation, filter=lambda x: x):
     default_lang = utils.get_default_language()
-    keyvalues = KeyValue.objects.for_model(model, modeltranslation).exclude(language=default_lang)
+    keyvalues = filter(KeyValue.objects.for_model(model, modeltranslation).exclude(language=default_lang))
     total = keyvalues.count()
     done = keyvalues.filter(edited=True).count()
     return (done * 100 / total, done, total)
@@ -96,7 +96,7 @@ def model_detail(request, model, language):
                'fields': fields,
                'original_language': default_lang,
                'other_language': language,
-               'progress': _get_model_stats(*entry),
+               'progress': _get_model_stats(entry[0], entry[1], lambda x: x.filter(language=language)),
                'first_unedited': first_unedited_translation}
 
 

@@ -8,8 +8,8 @@
 <h1>{% trans "Translations for" %} {{ model }}</h1>
 <p>
 	{% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
-	<div style="width: 64px; border: 1px solid #ACE; margin: 0; padding: 0;">
-	     <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE;"></div>
+	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
+	     <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
 	</div>
 </p>
 {% if first_unedited %}
