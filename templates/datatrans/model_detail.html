@@ -6,21 +6,39 @@
 
 {% block content %}
 <h1>{% trans "Translations for" %} {{ model }}</h1>
-
+<p>
+	{% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
+	<div style="width: 64px; border: 1px solid #ACE; margin: 0; padding: 0;">
+	     <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE;"></div>
+	</div>
+</p>
+{% if first_unedited %}
+<p>
+	<a href="#section_{{ first_unedited.pk }}">{% trans "Go to first unedited translation" %}</a>
+</p>
+{% endif %}
+<p>
+	<div style="width: 12px; height: 12px; border: 1px solid #CCC; float: left; margin-right: 4px;"></div>
+	<div style="float: left; height: 12px; margin-right: 16px;">{% trans "done" %}</div>
+	<div style="width: 12px; height: 12px; border: 1px solid #DEF; background: #DEF; float: left; margin-right: 4px;"></div>
+	<div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do" %}</div>
+	<div style="clear: both;"></div>
+</p>
 <form method="post" action=".">
 {% for field in fields %}
 <h2>{{ field.name }}</h2>
-
 <div class="module">
 <table>
 	<tr>
+		<th>&nbsp;</th>
 		<th>{{ original_language }}</th>
 		<th>{{ other_language }}</th>
 		<th>&nbsp;</th>
 	</tr>
 	{% for item in field.items %}
-	<tr style="{% if not item.translation.edited %}background: #DEF;{% endif %}">
-		<td><a name="section_{{ item.translation.pk }}"></a><textarea readonly="readonly" cols="80" rows="6">{{ item.original.value }}</textarea></td>
+	<tr id="section_{{ item.translation.pk }}" style="{% if not item.translation.edited %}background: #DEF;{% endif %}">
+		<td><a href="#section_{{ item.translation.pk }}" title="{% trans "Link to this translation" %}">¶</a></td>
+		<td><textarea readonly="readonly" cols="80" rows="6">{{ item.original.value }}</textarea></td>
 		<td>
 			<textarea name="translation_{{ item.translation.pk }}" cols="80" rows="6">{% if item.translation.edited %}{{ item.translation.value }}{% endif %}</textarea>
 			<br /><input type="checkbox" name="empty_{{ item.translation.pk }}" {% ifequal item.translation.value "" %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />

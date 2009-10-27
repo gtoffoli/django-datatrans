@@ -23,19 +23,24 @@ def _get_model_entry(slug):
         raise Http404(u'No registered model found for given query.')
     return entry[0]
 
+def _get_model_stats(model, modeltranslation):
+    default_lang = utils.get_default_language()
+    keyvalues = KeyValue.objects.for_model(model, modeltranslation).exclude(language=default_lang)
+    total = keyvalues.count()
+    done = keyvalues.filter(edited=True).count()
+    return (done * 100 / total, done, total)
+
+
+@staff_member_required
 def model_list(request):
     registry = utils.get_registry()
 
     default_lang = utils.get_default_language()
-    def _unedited_count(entry):
-        keyvalues = KeyValue.objects.for_model(*entry).exclude(language=default_lang).filter(edited=False)
-        return keyvalues.count()
-
 
     models = [(_get_model_slug(registry[i][0]),
                u'%s' % registry[i][0]._meta.verbose_name,
                registry[i][1].fields,
-               _unedited_count(registry[i])) for i in range(len(registry))]
+               _get_model_stats(*registry[i])) for i in range(len(registry))]
 
     languages = [l for l in settings.LANGUAGES if l[0] != default_lang]
 
@@ -43,6 +48,7 @@ def model_list(request):
 
     return render_to_response('datatrans/model_list.html', context, context_instance=RequestContext(request))
 
+@staff_member_required
 def model_detail(request, model, language):
     '''
     The context structure is defined as follows:
@@ -64,8 +70,8 @@ def model_detail(request, model, language):
             if translation != '' or empty:
                 if keyvalue.value != translation:
                     keyvalue.value = translation
-                    keyvalue.edited = True
-                    keyvalue.save()
+                keyvalue.edited = True
+                keyvalue.save()
         return HttpResponseRedirect(reverse('datatrans_model_detail', args=(model, language)) + section)
 
     entry = _get_model_entry(model)
@@ -73,12 +79,15 @@ def model_detail(request, model, language):
     default_lang = utils.get_default_language()
     model_name = u'%s' % entry[0]._meta.verbose_name
     fields = []
+    first_unedited_translation = None
     for field in entry[1].fields:
         items = []
         objects = entry[0].objects.all()
         for object in objects:
             original = KeyValue.objects.get_keyvalue(object.__dict__[field], default_lang)
             translation = KeyValue.objects.get_keyvalue(object.__dict__[field], language)
+            if first_unedited_translation is None and not translation.edited:
+                first_unedited_translation = translation
             items.append({'original': original, 'translation': translation})
         fields.append({'name': field, 'items': items})
 
@@ -86,7 +95,9 @@ def model_detail(request, model, language):
     context = {'model': model_name,
                'fields': fields,
                'original_language': default_lang,
-               'other_language': language}
+               'other_language': language,
+               'progress': _get_model_stats(*entry),
+               'first_unedited': first_unedited_translation}
 
 
     return render_to_response('datatrans/model_detail.html', context, context_instance=RequestContext(request))

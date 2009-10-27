@@ -26,7 +26,14 @@
 	            	({% for field in entry.2 %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})
 
 	            </th>
-	            <td>{{ entry.3 }}&nbsp;{{ entry.3|pluralize:_("unedited entry,unedited entries") }}</td>
+	            <td>
+	            	{{ entry.3.0 }}%
+	            </td>
+	            <td>
+	            	<div style="width: 64px; border: 1px solid #ACE; margin: 0; padding: 0;">
+	            		<div style="margin: 0; padding: 0; width: {% widthratio entry.3.0 100 64 %}px; height: 12px; background: #ACE;"></div>
+	            	</div>
+	            </td>
 	            {% for lang in languages %}<td><a href="{% url datatrans_model_detail entry.0 lang.0 %}">{{ lang.1 }}</a></td>{% endfor %}
 	        </tr>
 
