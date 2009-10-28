@@ -56,7 +56,6 @@ def model_list(request):
 
 
     context = {'models': models}
-    print repr(context)
 
     return render_to_response('datatrans/model_list.html', context, context_instance=RequestContext(request))
 
