@@ -28,7 +28,7 @@ def _get_model_stats(model, filter=lambda x: x):
     keyvalues = filter(KeyValue.objects.for_model(model, registry[model].values()).exclude(language=default_lang))
     total = keyvalues.count()
     done = keyvalues.filter(edited=True).count()
-    return (done * 100 / total, done, total)
+    return (done * 100 / total if total > 0 else 0, done, total)
 
 @staff_member_required
 def model_list(request):
