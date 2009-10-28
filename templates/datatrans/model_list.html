@@ -13,11 +13,11 @@
 		<a class="button" href="{% url datatrans_make_messages %}">{% trans "Scan models" %}</a>
 		<a class="button" href="{% url datatrans_obsolete_list %}">{% trans "Obsolete translations" %}</a>
 	</p>
-	{% for entry in models %}
+	{% for model in models %}
 	<div class="module">
 		<table>
-		    <caption><span class="section">{{ entry.1 }} ({% for field in entry.2 %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})</span></caption>
-		    {% for lang in entry.4 %}
+		    <caption><span class="section">{{ model.model_name }} ({% for field in model.field_names %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})</span></caption>
+		    {% for lang in model.languages %}
 	        <tr>
 	            <th scope="row">{{ lang.1 }}</th>
 	            <td>{{ lang.2.0 }}%</td>
@@ -26,15 +26,15 @@
 					     <div style="margin: 0; padding: 0; width: {% widthratio lang.2.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
 					</div>
 	            </td>
-	            <td><a href="{% url datatrans_model_detail entry.0 lang.0 %}" class="changelink">{% trans 'Change' %}</a></td>
+	            <td><a href="{% url datatrans_model_detail model.slug lang.0 %}" class="changelink">{% trans 'Change' %}</a></td>
 	        </tr>
 		    {% endfor %}
 		    <tr>
 		    	<td>{% trans "Total" %}:</td>
-		    	<td>{{ entry.3.0 }}%</td>
+		    	<td>{{ model.stats.0 }}%</td>
 		    	<td>
 	            	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
-					     <div style="margin: 0; padding: 0; width: {% widthratio entry.3.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
+					     <div style="margin: 0; padding: 0; width: {% widthratio model.stats.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
 					</div>
 	            </td>
 	            <td>&nbsp;</td>

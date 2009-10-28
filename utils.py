@@ -1,8 +1,25 @@
 from django.conf import settings
 from datatrans.models import KeyValue, make_digest
 from django.utils import translation
+from django.core.exceptions import ImproperlyConfigured
 
-REGISTRY = []
+
+'''
+REGISTRY is a dict containing the registered models and their translation fields as a dict.
+Example:
+
+>>> from blog.models import Entry
+>>> from datatrans.utils import *
+>>> class EntryTranslation(object):
+...     fields = ('title', 'body',)
+...
+>>> register(Entry, EntryTranslation)
+>>> REGISTRY
+{<class 'blog.models.Entry'>: {'body': <django.db.models.fields.TextField object at 0x911368c>,
+                               'title': <django.db.models.fields.CharField object at 0x911346c>}}
+'''
+REGISTRY = {}
+
 
 class FieldDescriptor(object):
     def __init__(self, name):
@@ -29,7 +46,7 @@ def get_default_language():
         lang = lang.split('-')[0]
         default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(default) == 0:
-        return lang
+        raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
     return default[0]
 
 
@@ -46,9 +63,14 @@ def register(model, modeltranslation):
 
     '''
 
-    REGISTRY.append((model, modeltranslation))
-    for field in modeltranslation.fields:
-        setattr(model, field, FieldDescriptor(field))
+    if not model in REGISTRY:
+        # create a fields dict (models apparently lack this?!)
+        fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
+
+        REGISTRY[model] = fields
+
+        for field in fields.values():
+            setattr(model, field.name, FieldDescriptor(field.name))
 
 
 def make_messages(build_digest_list=False):
@@ -63,12 +85,13 @@ def make_messages(build_digest_list=False):
     object_count = 0
     digest_list = []
 
-    for model, modeltranslation in REGISTRY:
+    for model in REGISTRY:
+        fields = REGISTRY[model].values()
         objects = model.objects.all()
         for object in objects:
-            for field in modeltranslation.fields:
+            for field in fields:
                 for lang_code, lang_human in settings.LANGUAGES:
-                    value = object.__dict__[field]
+                    value = object.__dict__[field.name]
                     if build_digest_list:
                         digest_list.append(make_digest(value))
                     KeyValue.objects.lookup(value, lang_code)

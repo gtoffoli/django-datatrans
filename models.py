@@ -15,14 +15,18 @@ class KeyValueManager(models.Manager):
     def lookup(self, key, language):
         return self.get_keyvalue(key, language).value
 
-    def for_model(self, model, modeltranslation, modelfield=None):
+    def for_model(self, model, fields, modelfield=None):
+        '''
+        Get KeyValues for a model. The fields argument is a list of model fields.
+        If modelfield is specified, only KeyValue entries for that field will be returned.
+        '''
         objects = model.objects.all()
         digests = []
 
         for object in objects:
             if modelfield is None:
-                for field in modeltranslation.fields:
-                    digests.append(make_digest(object.__dict__[field]))
+                for field in fields:
+                    digests.append(make_digest(object.__dict__[field.name]))
             else:
                 digests.append(make_digest(object.__dict__[modelfield]))
 
