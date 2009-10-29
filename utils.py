@@ -68,7 +68,6 @@ class FieldDescriptor(object):
         return None
 
 
-
 def _pre_save(sender, instance, **kwargs):
     setattr(instance, 'datatrans_old_language', get_current_language())
     default_lang = get_default_language()
@@ -87,9 +86,10 @@ def _pre_save(sender, instance, **kwargs):
                 kvs = KeyValue.objects.filter(digest=old_digest)
                 for kv in kvs:
                     kv.digest = new_digest
-                    #kv.edited = False
                     if kv.language == default_lang:
                         kv.value = instance.__dict__[field.name]
+                    else:
+                        kv.fuzzy = True
                     kv.save()
 
 

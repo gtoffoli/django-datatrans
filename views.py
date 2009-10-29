@@ -27,7 +27,7 @@ def _get_model_stats(model, filter=lambda x: x):
     registry = utils.get_registry()
     keyvalues = filter(KeyValue.objects.for_model(model, registry[model].values()).exclude(language=default_lang))
     total = keyvalues.count()
-    done = keyvalues.filter(edited=True).count()
+    done = keyvalues.filter(edited=True, fuzzy=False).count()
     return (done * 100 / total if total > 0 else 0, done, total)
 
 @staff_member_required
@@ -80,8 +80,12 @@ def model_detail(request, slug, language):
             empty = 'empty_%d' % keyvalue.pk in request.POST
             ignore = 'ignore_%d' % keyvalue.pk in request.POST
             if translation != '' or empty or ignore:
-                if keyvalue.value != translation and not ignore:
-                    keyvalue.value = translation
+                if keyvalue.value != translation:
+                    if not ignore:
+                        keyvalue.value = translation
+                    keyvalue.fuzzy = False
+                if ignore:
+                    keyvalue.fuzzy = False
                 keyvalue.edited = True
                 keyvalue.save()
         return HttpResponseRedirect(reverse('datatrans_model_detail', args=(slug, language)) + section)
@@ -102,7 +106,7 @@ def model_detail(request, slug, language):
             key = object.__dict__[field.name]
             original = KeyValue.objects.get_keyvalue(key, default_lang)
             translation = KeyValue.objects.get_keyvalue(key, language)
-            if first_unedited_translation is None and not translation.edited:
+            if first_unedited_translation is None and (not translation.edited or translation.fuzzy):
                 first_unedited_translation = translation
             items.append({'original': original, 'translation': translation})
         field_list.append({'name': field.name, 'verbose_name': unicode(field.verbose_name), 'items': items})

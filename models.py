@@ -38,6 +38,7 @@ class KeyValue(models.Model):
     language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
     value = models.TextField(blank=True)
     edited = models.BooleanField(blank=True, default=False)
+    fuzzy = models.BooleanField(blank=True, default=False)
 
     objects = KeyValueManager()
 

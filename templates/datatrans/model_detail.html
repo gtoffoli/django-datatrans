@@ -27,6 +27,8 @@
 	<div style="float: left; height: 12px; margin-right: 16px;">{% trans "done" %}</div>
 	<div style="width: 12px; height: 12px; border: 1px solid #DEF; background: #DEF; float: left; margin-right: 4px;"></div>
 	<div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do" %}</div>
+	<div style="width: 12px; height: 12px; border: 1px solid #DEF; background: #FED; float: left; margin-right: 4px;"></div>
+	<div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do (fuzzy)" %}</div>
 	<div style="clear: both;"></div>
 </p>
 <form method="post" action=".">
@@ -41,11 +43,21 @@
 		<th>&nbsp;</th>
 	</tr>
 	{% for item in field.items %}
-	<tr id="section_{{ item.translation.pk }}" style="{% if not item.translation.edited %}background: #DEF;{% endif %}">
+	<tr id="section_{{ item.translation.pk }}" style="{% if not item.translation.edited %}background: #DEF;{% else %}{% if item.translation.fuzzy %}background: #FED;{% endif %}{% endif %}">
 		<td><a href="#section_{{ item.translation.pk }}" title="{% trans "Link to this translation" %}">¶</a></td>
 		<td>
 			<textarea readonly="readonly" cols="60" rows="6">{{ item.original.value }}</textarea>
-			<br />{% if item.translation.edited %}{% trans "done" %}{% else %}{% trans "to do" %}{% endif %}
+			<br />
+			{% if not item.translation.edited %}
+				{% trans "to do" %}
+			{% else %}
+				{% if item.translation.fuzzy %}
+					{% trans "fuzzy" %}
+				{% else %}
+					{% trans "done" %}
+				{% endif %}
+
+			{% endif %}
 		</td>
 		<td>
 			<textarea name="translation_{{ item.translation.pk }}" cols="60" rows="6">{% if item.translation.edited %}{{ item.translation.value }}{% endif %}</textarea>
