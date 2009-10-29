@@ -34,17 +34,27 @@ def get_default_language():
         raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
     return default[0]
 
+def get_current_language():
+    lang = translation.get_language()
+    current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
+    if len(current) == 0:
+        lang = lang.split('-')[0]
+        current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
+    if len(current) == 0:
+        raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
+    return current[0]
+
 class FieldDescriptor(object):
     def __init__(self, name):
         self.name = name
 
     def __get__(self, instance, owner):
-        lang_code = translation.get_language()
+        lang_code = get_current_language()
         key = instance.__dict__[self.name]
         return KeyValue.objects.lookup(key, lang_code)
 
     def __set__(self, instance, value):
-        lang_code = translation.get_language()
+        lang_code = get_current_language()
         default_lang = get_default_language()
 
         if lang_code == default_lang or not self.name in instance.__dict__:
@@ -60,7 +70,7 @@ class FieldDescriptor(object):
 
 
 def _pre_save(sender, instance, **kwargs):
-    setattr(instance, 'datatrans_old_language', translation.get_language())
+    setattr(instance, 'datatrans_old_language', get_current_language())
     default_lang = get_default_language()
     translation.activate(default_lang)
 
