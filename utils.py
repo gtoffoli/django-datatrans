@@ -2,7 +2,7 @@ from django.conf import settings
 from datatrans.models import KeyValue, make_digest
 from django.utils import translation
 from django.core.exceptions import ImproperlyConfigured
-
+from django.db import models
 
 '''
 REGISTRY is a dict containing the registered models and their translation fields as a dict.
@@ -20,23 +20,8 @@ Example:
 '''
 REGISTRY = {}
 
-
-class FieldDescriptor(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __get__(self, instance, owner):
-        lang_code = translation.get_language()
-        key = instance.__dict__[self.name]
-        return KeyValue.objects.lookup(key, lang_code)
-
-    def __set__(self, instance, value):
-        instance.__dict__[self.name] = value
-
-
 def get_registry():
     return REGISTRY
-
 
 def get_default_language():
     lang = settings.LANGUAGE_CODE
@@ -49,6 +34,57 @@ def get_default_language():
         raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
     return default[0]
 
+class FieldDescriptor(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        lang_code = translation.get_language()
+        key = instance.__dict__[self.name]
+        return KeyValue.objects.lookup(key, lang_code)
+
+    def __set__(self, instance, value):
+        lang_code = translation.get_language()
+        default_lang = get_default_language()
+
+        if lang_code == default_lang or not self.name in instance.__dict__:
+            instance.__dict__[self.name] = value
+        else:
+            kv = KeyValue.objects.get_keyvalue(instance.__dict__[self.name], lang_code)
+            kv.value = value
+            kv.edited = True
+            kv.save()
+
+        return None
+
+
+
+def _pre_save(sender, instance, **kwargs):
+    setattr(instance, 'datatrans_old_language', translation.get_language())
+    default_lang = get_default_language()
+    translation.activate(default_lang)
+
+    # When we edit a registered model, update the original translations and mark them as unedited (to do)
+    if instance.pk is not None:
+        register = get_registry()
+        fields = register[sender].values()
+        original = sender.objects.get(pk=instance.pk)
+        for field in fields:
+            old_digest = make_digest(original.__dict__[field.name])
+            new_digest = make_digest(instance.__dict__[field.name])
+            # If changed, update keyvalues
+            if old_digest != new_digest:
+                kvs = KeyValue.objects.filter(digest=old_digest)
+                for kv in kvs:
+                    kv.digest = new_digest
+                    #kv.edited = False
+                    if kv.language == default_lang:
+                        kv.value = instance.__dict__[field.name]
+                    kv.save()
+
+
+def _post_save(sender, instance, created, **kwargs):
+    translation.activate(getattr(instance, 'datatrans_old_language', get_default_language()))
 
 def register(model, modeltranslation):
     '''
@@ -71,6 +107,8 @@ def register(model, modeltranslation):
 
         for field in fields.values():
             setattr(model, field.name, FieldDescriptor(field.name))
+            models.signals.pre_save.connect(_pre_save, sender=model)
+            models.signals.post_save.connect(_post_save, sender=model)
 
 
 def make_messages(build_digest_list=False):

@@ -99,8 +99,9 @@ def model_detail(request, slug, language):
         items = []
         objects = model.objects.all()
         for object in objects:
-            original = KeyValue.objects.get_keyvalue(object.__dict__[field.name], default_lang)
-            translation = KeyValue.objects.get_keyvalue(object.__dict__[field.name], language)
+            key = object.__dict__[field.name]
+            original = KeyValue.objects.get_keyvalue(key, default_lang)
+            translation = KeyValue.objects.get_keyvalue(key, language)
             if first_unedited_translation is None and not translation.edited:
                 first_unedited_translation = translation
             items.append({'original': original, 'translation': translation})
