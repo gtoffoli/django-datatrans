@@ -83,15 +83,13 @@ def _pre_save(sender, instance, **kwargs):
             new_digest = make_digest(instance.__dict__[field.name])
             # If changed, update keyvalues
             if old_digest != new_digest:
-                # check if they already exist
+                # Check if the new value already exists, if not, create a new one. The old one will be obsoleted.
                 if KeyValue.objects.filter(digest=new_digest).count() == 0:
                     kvs = KeyValue.objects.filter(digest=old_digest)
                     for kv in kvs:
-                        kv.digest = new_digest
-                        kv.fuzzy = True
-                        if kv.language == default_lang:
-                            kv.value = instance.__dict__[field.name]
-                        kv.save(force_insert=True)
+                        new_value = instance.__dict__[field.name] if kv.language == default_lang else kv.value
+                        new_kv = KeyValue(digest=new_digest, language=kv.language, edited=kv.edited, fuzzy=True, value=new_value)
+                        new_kv.save()
 
 
 def _post_save(sender, instance, created, **kwargs):
