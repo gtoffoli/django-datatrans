@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-
-# This setup.py must be moved one dir up before it can be used..
-
 from distutils.core import setup
 
 setup(name='django-datatrans',
