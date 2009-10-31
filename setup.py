@@ -20,6 +20,6 @@ setup(name='django-datatrans',
           'Operating System :: OS Independent',
           'Environment :: Web Environment',
           'Framework :: Django',
-          'Topic :: Software Development :: Libraries :: Python Modules',
+          'Topic :: Software Development :: Internationalization',
       ],
 )
