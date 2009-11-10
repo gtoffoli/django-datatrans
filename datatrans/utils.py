@@ -113,11 +113,11 @@ def register(model, modeltranslation):
         fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
 
         REGISTRY[model] = fields
+        models.signals.pre_save.connect(_pre_save, sender=model)
+        models.signals.post_save.connect(_post_save, sender=model)
 
         for field in fields.values():
             setattr(model, field.name, FieldDescriptor(field.name))
-            models.signals.pre_save.connect(_pre_save, sender=model)
-            models.signals.post_save.connect(_post_save, sender=model)
 
 
 def make_messages(build_digest_list=False):
