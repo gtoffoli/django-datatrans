@@ -13,7 +13,11 @@ class KeyValueManager(models.Manager):
         return keyvalue
 
     def lookup(self, key, language):
-        return self.get_keyvalue(key, language).value
+        kv = self.get_keyvalue(key, language)
+        if kv.edited:
+            return kv.value
+        else:
+            return key
 
     def for_model(self, model, fields, modelfield=None):
         '''
