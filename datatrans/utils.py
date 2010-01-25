@@ -24,14 +24,15 @@ def get_registry():
     return REGISTRY
 
 def get_default_language():
-    lang = settings.LANGUAGE_CODE
+    # Get the source language code if specified, or else just the default language code.
+    lang = getattr(settings, 'SOURCE_LANGUAGE_CODE', settings.LANGUAGE_CODE)
     default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(default) == 0:
         # when not found, take first part ('en' instead of 'en-us')
         lang = lang.split('-')[0]
         default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(default) == 0:
-        raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
+        raise ImproperlyConfigured("The [SOURCE_]LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
     return default[0]
 
 def get_current_language():
@@ -41,7 +42,7 @@ def get_current_language():
         lang = lang.split('-')[0]
         current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(current) == 0:
-        raise ImproperlyConfigured("The LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
+        raise ImproperlyConfigured("The current language '%s' is not found in your LANGUAGES setting." % lang)
     return current[0]
 
 class FieldDescriptor(object):
