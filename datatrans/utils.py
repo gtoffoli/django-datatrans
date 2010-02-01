@@ -63,7 +63,12 @@ class FieldDescriptor(object):
         if lang_code == default_lang or not self.name in instance.__dict__:
             instance.__dict__[self.name] = value
         else:
-            kv = KeyValue.objects.get_keyvalue(instance.__dict__[self.name], lang_code)
+            original = instance.__dict__[self.name]
+            if original == u'':
+                instance.__dict__[self.name] = value
+                original = value
+
+            kv = KeyValue.objects.get_keyvalue(original, lang_code)
             kv.value = value
             kv.edited = True
             kv.save()
