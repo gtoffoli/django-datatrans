@@ -101,9 +101,9 @@ def model_detail(request, slug, language):
     first_unedited_translation = None
     for field in fields.values():
         items = []
-        objects = model.objects.all()
+        objects = model.objects.values(field.name).distinct().all().order_by(field.name)
         for object in objects:
-            key = object.__dict__[field.name]
+            key = object[field.name]
             original = KeyValue.objects.get_keyvalue(key, default_lang)
             translation = KeyValue.objects.get_keyvalue(key, language)
             if first_unedited_translation is None and (not translation.edited or translation.fuzzy):
