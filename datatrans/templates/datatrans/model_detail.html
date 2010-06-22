@@ -65,7 +65,7 @@
 			<input type="checkbox" name="empty_{{ item.translation.pk }}" {% ifequal item.translation.value "" %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
 			<span title="{% trans "tick this checkbox if the translation is deliberately empty" %}">{% trans "empty" %}</span>
 			<input type="checkbox" name="ignore_{{ item.translation.pk }}" {% ifequal item.translation.value item.original.value %}{% if item.translation.edited %}checked="checked"{% endif %}{% endifequal %} />
-			<span title="{% trans "" %}">{% trans "ignore" %}</span>
+			<span title="{% trans "keep this original or fuzzy" %}">{% trans "ignore" %}</span>
 		</td>
 		<td><input type="submit" value="{% trans "Save" %}" name="section_{{ item.translation.pk }}" /></td>
 	</tr>
