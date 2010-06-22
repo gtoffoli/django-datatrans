@@ -12,6 +12,7 @@ FEATURES
 * Recovery and cleanup of obsolete translations.
 * Translation admin interface included (uses CSS from django admin).
 * Transparent model API (in 99% of all cases, nothing has to be changed to original code).
+* Infinite caching for all strings (based on id and hash)
 
 HOW TO USE
 ----------
