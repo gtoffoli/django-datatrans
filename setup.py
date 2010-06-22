@@ -2,7 +2,7 @@
 from distutils.core import setup
 
 setup(name='django-datatrans',
-      version='0.7',
+      version='0.8',
       description='Translate Django models without changing anything to existing applications and their underlying database.',
       author='City Live nv',
       author_email='jef.geskens@citylive.be',
