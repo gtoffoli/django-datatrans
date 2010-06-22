@@ -31,7 +31,7 @@
 	<div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do (fuzzy)" %}</div>
 	<div style="clear: both;"></div>
 </p>
-<form method="post" action=".">
+<form method="post" action=".">{% csrf_token %}
 {% for field in fields %}
 <h2 id="{{ field.name }}">{{ field.verbose_name }}</h2>
 

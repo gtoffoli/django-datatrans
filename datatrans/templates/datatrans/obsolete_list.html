@@ -13,7 +13,7 @@
 			and when done click the 'Remove all obsoletes' button to clean the KeyValue table.{% endblocktrans %}
 	</p>
 
-	<form method="post" action=".">
+	<form method="post" action=".">{% csrf_token %}
 	<div class="submit-row" >
 		<input type="submit" value="{% trans "Remove all obsoletes" %}" class="default" />
 	</div>
