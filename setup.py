@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from distutils.core import setup
+import datatrans
 
 setup(name='django-datatrans',
-      version='0.8',
+      version=datatrans.__version__,
       description='Translate Django models without changing anything to existing applications and their underlying database.',
       author='City Live nv',
       author_email='jef.geskens@citylive.be',
