@@ -1,8 +1,9 @@
 from django.conf import settings
-from datatrans.models import KeyValue, make_digest
-from django.utils import translation
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
+from django.utils import translation
+
+from datatrans.models import KeyValue, make_digest
 
 '''
 REGISTRY is a dict containing the registered models and their translation fields as a dict.
