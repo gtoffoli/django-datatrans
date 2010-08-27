@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils import translation
+from django.utils.datastructures import SortedDict
 
 from datatrans.models import KeyValue, make_digest
 
@@ -19,7 +20,7 @@ Example:
 {<class 'blog.models.Entry'>: {'body': <django.db.models.fields.TextField object at 0x911368c>,
                                'title': <django.db.models.fields.CharField object at 0x911346c>}}
 '''
-REGISTRY = {}
+REGISTRY = SortedDict()
 
 def get_registry():
     return REGISTRY
