@@ -32,3 +32,32 @@ class PostgresRegressionTest(TestCase):
                 self.assertEqual(count_kv, 1,
                                  u"Got %d KeyValues after concurrent insert instead of 1." % count_kv)
             add_new_records()
+
+class RegressionTests(TestCase):
+    def test_access_before_save_breaks_pre_save(self):
+        from django.utils import translation
+        translation.activate('en')
+        value_en = "test1_en"
+        option = Option(name=value_en)
+        self.assertEqual(option.name, value_en)
+        option.save()
+
+        translation.activate('ro')
+        self.assertEqual(option.name, value_en)
+        value_ro = "test1_ro"
+        option.name = value_ro
+        self.assertEqual(option.name, value_ro)
+        option.save()
+        self.assertEqual(option.name, value_ro)
+
+        translation.activate('en')
+        value_en = "test2_en"
+        option.name = value_en
+        self.assertEqual(option.name, value_en) # this access causes the creation of a new KeyValue for 'en', which
+                                                # causes the pre_save handler to skip creation of a new KeyValue for 'ro' language
+                                                # and causes the last assertEqual to fail
+        option.save()
+        self.assertEqual(option.name, value_en)
+
+        translation.activate('ro')
+        self.assertEqual(option.name, value_ro)
