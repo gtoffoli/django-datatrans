@@ -122,4 +122,5 @@ class KeyValue(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.language, self.value)
 
-
+    class Meta:
+        unique_together = ('digest', 'language')
