@@ -64,7 +64,11 @@ class KeyValueManager(models.Manager):
             cache.set(key, None, 5)
 
     def _post_save(self, instance, **kwargs):
-        self._invalidate_cache(instance)
+        '''
+        Refresh the cache when saving
+        '''
+        for key in instance.cache_keys:
+            cache.set(key, instance, CACHE_DURATION)
 
     def _post_delete(self, instance, **kwargs):
         self._invalidate_cache(instance)
