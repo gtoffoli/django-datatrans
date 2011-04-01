@@ -6,14 +6,20 @@ from django.db.models.query import QuerySet
 
 from hashlib import sha1
 
+
 def make_digest(key):
+    'Get the SHA1 hexdigest of the given key'
     return sha1(key.encode('utf-8')).hexdigest()
 
+
 def _get_cache_keys(self):
+    'Get all the cache keys for the given object'
     return ('datatrans_%s_%s' % (self.language, self.digest),
             'datatrans_%s' % self.id)
 
-CACHE_DURATION = getattr(settings, 'DATATRANS_CACHE_DURATION', 60 * 60) # cache for an hour
+# cache for an hour
+CACHE_DURATION = getattr(settings, 'DATATRANS_CACHE_DURATION', 60 * 60)
+
 
 class KeyValueManager(models.Manager):
     def get_query_set(self):
@@ -21,7 +27,9 @@ class KeyValueManager(models.Manager):
 
     def get_keyvalue(self, key, language):
         digest = make_digest(key)
-        keyvalue, created = self.get_or_create(digest=digest, language=language, defaults={'value': key})
+        keyvalue, created = self.get_or_create(digest=digest,
+                                               language=language,
+                                               defaults={'value': key})
         return keyvalue
 
     def lookup(self, key, language):
@@ -33,8 +41,10 @@ class KeyValueManager(models.Manager):
 
     def for_model(self, model, fields, modelfield=None):
         '''
-        Get KeyValues for a model. The fields argument is a list of model fields.
-        If modelfield is specified, only KeyValue entries for that field will be returned.
+        Get KeyValues for a model. The fields argument is a list of model
+        fields.
+        If modelfield is specified, only KeyValue entries for that field will
+        be returned.
         '''
         objects = model.objects.all()
         digests = []
@@ -86,8 +96,8 @@ class KeyValueQuerySet(QuerySet):
 
     def get(self, *args, **kwargs):
         '''
-        Checks the cache to see if there's a cached entry for this pk. If not, fetches
-        using super then stores the result in cache.
+        Checks the cache to see if there's a cached entry for this pk. If not,
+        fetches using super then stores the result in cache.
 
         Most of the logic here was gathered from a careful reading of
         ``django.db.models.sql.query.add_filter``
@@ -106,7 +116,8 @@ class KeyValueQuerySet(QuerySet):
                 if obj is not None:
                     return obj
         elif 'digest' in kwargs and 'language' in kwargs:
-            obj = cache.get('datatrans_%s_%s' % (kwargs['language'], kwargs['digest']))
+            obj = cache.get('datatrans_%s_%s' % (kwargs['language'],
+                                                 kwargs['digest']))
             if obj is not None:
                 return obj
 
@@ -116,7 +127,8 @@ class KeyValueQuerySet(QuerySet):
 
 class KeyValue(models.Model):
     digest = models.CharField(max_length=40, db_index=True)
-    language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
+    language = models.CharField(max_length=5, db_index=True,
+                                choices=settings.LANGUAGES)
     value = models.TextField(blank=True)
     edited = models.BooleanField(blank=True, default=False)
     fuzzy = models.BooleanField(blank=True, default=False)

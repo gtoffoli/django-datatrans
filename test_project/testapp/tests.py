@@ -4,6 +4,7 @@ try:
     from django.db import DEFAULT_DB_ALIAS
 except ImportError:
     pass
+from django.utils import translation
 
 from datatrans.models import KeyValue
 from datatrans.utils import get_default_language
@@ -35,7 +36,6 @@ class PostgresRegressionTest(TestCase):
 
 class RegressionTests(TestCase):
     def test_access_before_save_breaks_pre_save(self):
-        from django.utils import translation
         translation.activate('en')
         value_en = "test1_en"
         option = Option(name=value_en)

@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.template.context import RequestContext
@@ -9,9 +9,11 @@ from django.contrib.contenttypes.models import ContentType
 from datatrans import utils
 from datatrans.models import KeyValue
 
+
 def _get_model_slug(model):
-        ct = ContentType.objects.get_for_model(model)
-        return u'%s.%s' % (ct.app_label, ct.model)
+    ct = ContentType.objects.get_for_model(model)
+    return u'%s.%s' % (ct.app_label, ct.model)
+
 
 def _get_model_entry(slug):
     app_label, model_slug = slug.split('.')
@@ -22,6 +24,7 @@ def _get_model_entry(slug):
         raise Http404(u'No registered model found for given query.')
     return model_class
 
+
 def _get_model_stats(model, filter=lambda x: x):
     default_lang = utils.get_default_language()
     registry = utils.get_registry()
@@ -30,10 +33,12 @@ def _get_model_stats(model, filter=lambda x: x):
     done = keyvalues.filter(edited=True, fuzzy=False).count()
     return (done * 100 / total if total > 0 else 0, done, total)
 
+
 @staff_member_required
 def model_list(request):
     '''
-    Shows an overview of models to translate, along with the fields, languages and progress information.
+    Shows an overview of models to translate, along with the fields, languages
+    and progress information.
     The context structure is defined as follows:
 
     context = {'models': [{'languages': [('nl', 'NL', (<percent_done>, <todo>, <total>)), ('fr', 'FR', (<percent_done>, <todo>, <total>))],
@@ -54,10 +59,12 @@ def model_list(request):
                'languages': [(l[0], l[1], _get_model_stats(model, filter=lambda x: x.filter(language=l[0]))) for l in languages],
                } for model in registry]
 
-
     context = {'models': models}
 
-    return render_to_response('datatrans/model_list.html', context, context_instance=RequestContext(request))
+    return render_to_response('datatrans/model_list.html',
+                              context,
+                              context_instance=RequestContext(request))
+
 
 @staff_member_required
 def model_detail(request, slug, language):
@@ -111,7 +118,6 @@ def model_detail(request, slug, language):
             items.append({'original': original, 'translation': translation})
         field_list.append({'name': field.name, 'verbose_name': unicode(field.verbose_name), 'items': items})
 
-
     context = {'model': model_name,
                'fields': field_list,
                'original_language': default_lang,
@@ -119,13 +125,14 @@ def model_detail(request, slug, language):
                'progress': _get_model_stats(model, lambda x: x.filter(language=language)),
                'first_unedited': first_unedited_translation}
 
-
     return render_to_response('datatrans/model_detail.html', context, context_instance=RequestContext(request))
+
 
 @staff_member_required
 def make_messages(request):
     utils.make_messages()
     return HttpResponseRedirect(reverse('datatrans_model_list'))
+
 
 @staff_member_required
 def obsolete_list(request):

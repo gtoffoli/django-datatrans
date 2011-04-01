@@ -1,7 +1,6 @@
-"this is a minimal locale selecting middleware that will look at the current session"
-
 from django.utils.cache import patch_vary_headers
 from django.utils import translation
+
 
 class MinimalLocaleMiddleware(object):
     """
@@ -35,4 +34,3 @@ def get_language_from_request(request):
         if lang_code in supported and lang_code is not None:
             return lang_code
     return settings.LANGUAGE_CODE
-

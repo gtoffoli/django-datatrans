@@ -6,8 +6,10 @@ from django.utils.datastructures import SortedDict
 
 from datatrans.models import KeyValue, make_digest
 
+
 '''
-REGISTRY is a dict containing the registered models and their translation fields as a dict.
+REGISTRY is a dict containing the registered models and their translation
+fields as a dict.
 Example:
 
 >>> from blog.models import Entry
@@ -22,11 +24,16 @@ Example:
 '''
 REGISTRY = SortedDict()
 
+
 def get_registry():
     return REGISTRY
 
+
 def get_default_language():
-    # Get the source language code if specified, or else just the default language code.
+    '''
+    Get the source language code if specified, or else just the default
+    language code.
+    '''
     lang = getattr(settings, 'SOURCE_LANGUAGE_CODE', settings.LANGUAGE_CODE)
     default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(default) == 0:
@@ -37,7 +44,11 @@ def get_default_language():
         raise ImproperlyConfigured("The [SOURCE_]LANGUAGE_CODE '%s' is not found in your LANGUAGES setting." % lang)
     return default[0]
 
+
 def get_current_language():
+    '''
+    Get the current lanuage
+    '''
     lang = translation.get_language()
     current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(current) == 0:
@@ -46,6 +57,7 @@ def get_current_language():
     if len(current) == 0:
         raise ImproperlyConfigured("The current language '%s' is not found in your LANGUAGES setting." % lang)
     return current[0]
+
 
 class FieldDescriptor(object):
     def __init__(self, name):
@@ -113,7 +125,9 @@ def _pre_save(sender, instance, **kwargs):
 
 
 def _post_save(sender, instance, created, **kwargs):
-    translation.activate(getattr(instance, 'datatrans_old_language', get_default_language()))
+    translation.activate(getattr(instance, 'datatrans_old_language',
+                                 get_default_language()))
+
 
 def register(model, modeltranslation):
     '''
@@ -169,8 +183,8 @@ def make_messages(build_digest_list=False):
     else:
         return object_count
 
+
 def find_obsoletes():
     digest_list = make_messages(build_digest_list=True)
     obsoletes = KeyValue.objects.exclude(digest__in=digest_list)
     return obsoletes
-

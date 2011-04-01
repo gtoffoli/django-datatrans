@@ -4,6 +4,7 @@ from django.utils import translation
 
 from datatrans.models import KeyValue, make_digest
 
+
 class DatatransTests(TestCase):
     def test_default_values(self):
         value_en = 'test_en'
