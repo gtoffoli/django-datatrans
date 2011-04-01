@@ -71,6 +71,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
 
+CACHE_BACKEND = 'locmem://'
+
 ROOT_URLCONF = 'test_project.urls'
 
 TEMPLATE_DIRS = (
@@ -89,3 +91,10 @@ INSTALLED_APPS = (
     'datatrans',
     'test_project.testapp'
 )
+
+try:
+    import test_extensions
+except ImportError:
+    pass
+else:
+    INSTALLED_APPS += ('test_extensions',)
