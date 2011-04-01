@@ -1,8 +1,5 @@
-
-
-
 def test_concurrently(times):
-    """ 
+    """
     Add this decorator to small pieces of code that you want to test
     concurrently to make sure they don't raise exceptions when run at the
     same time.  E.g., some Django views that do a SELECT and then a subsequent
