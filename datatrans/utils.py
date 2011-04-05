@@ -66,7 +66,7 @@ class FieldDescriptor(object):
     def __get__(self, instance, owner):
         lang_code = get_current_language()
         key = instance.__dict__[self.name]
-        if len(key) == 0:
+        if not key:
             return u''
         return KeyValue.objects.lookup(key, lang_code)
 
