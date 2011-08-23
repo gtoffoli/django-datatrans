@@ -3,12 +3,25 @@ from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.template.context import RequestContext
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.contenttypes.models import ContentType
 
 from datatrans import utils
 from datatrans.models import KeyValue
 
+def can_translate(user):
+    if not user.is_authenticated():
+        return False
+    elif user.is_superuser:
+        return True
+    else:
+        group_name = getattr(settings, 'DATATRANS_GROUP_NAME', None)
+        if group_name:
+            from django.contrib.auth.models import Group
+            translators = Group.objects.get(name=group_name)
+            return translators in user.groups.all()
+        else:
+            return user.is_staff
 
 def _get_model_slug(model):
     ct = ContentType.objects.get_for_model(model)
@@ -34,7 +47,7 @@ def _get_model_stats(model, filter=lambda x: x):
     return (done * 100 / total if total > 0 else 0, done, total)
 
 
-@staff_member_required
+@user_passes_test(can_translate, settings.LOGIN_URL)
 def model_list(request):
     '''
     Shows an overview of models to translate, along with the fields, languages
@@ -66,7 +79,7 @@ def model_list(request):
                               context_instance=RequestContext(request))
 
 
-@staff_member_required
+@user_passes_test(can_translate, settings.LOGIN_URL)
 def model_detail(request, slug, language):
     '''
     The context structure is defined as follows:
@@ -128,13 +141,13 @@ def model_detail(request, slug, language):
     return render_to_response('datatrans/model_detail.html', context, context_instance=RequestContext(request))
 
 
-@staff_member_required
+@user_passes_test(can_translate, settings.LOGIN_URL)
 def make_messages(request):
     utils.make_messages()
     return HttpResponseRedirect(reverse('datatrans_model_list'))
 
 
-@staff_member_required
+@user_passes_test(can_translate, settings.LOGIN_URL)
 def obsolete_list(request):
     from django.db.models import Q
 
