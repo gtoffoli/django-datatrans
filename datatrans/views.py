@@ -85,11 +85,13 @@ def model_detail(request, slug, language):
     The context structure is defined as follows:
 
     context = {'model': '<name of model>',
-               'fields': {'name': '<name of field>',
-                          'items': [{'original': '<KeyValue object with original value>',
-                                     'translations': [<KeyValue objects with translation>]}]
-                         }
-              }
+               'objects': [{'name': '<name of object>',
+                            'fields': [{
+                                'name': '<name of field>',
+                                'original': '<kv>',
+                                'translation': '<kv>'
+                            ]}],
+             }
     '''
 
     if request.method == 'POST':
@@ -117,22 +119,32 @@ def model_detail(request, slug, language):
     default_lang = utils.get_default_language()
     model_name = u'%s' % model._meta.verbose_name
 
-    field_list = []
     first_unedited_translation = None
-    for field in fields.values():
-        items = []
-        objects = model.objects.values(field.name).distinct().all().order_by(field.name)
-        for object in objects:
-            key = object[field.name]
+    objects = model.objects.all()
+    object_list = []
+    for object in objects:
+        object_item = {}
+        object_item['name'] = unicode(object)
+        object_item['id'] = object.id
+        object_item['fields'] = object_fields = []
+        object_list.append(object_item)
+        for field in fields.values():
+            key = model.objects.filter(pk=object.pk).values(field.name)[0][field.name]
             original = KeyValue.objects.get_keyvalue(key, default_lang)
             translation = KeyValue.objects.get_keyvalue(key, language)
-            if first_unedited_translation is None and (not translation.edited or translation.fuzzy):
+            if first_unedited_translation is None and (
+                not translation.edited or translation.fuzzy
+            ):
                 first_unedited_translation = translation
-            items.append({'original': original, 'translation': translation})
-        field_list.append({'name': field.name, 'verbose_name': unicode(field.verbose_name), 'items': items})
+            object_fields.append({
+                'name': field.name,
+                'verbose_name': unicode(field.verbose_name),
+                'original': original,
+                'translation': translation
+            })
 
     context = {'model': model_name,
-               'fields': field_list,
+               'objects': object_list,
                'original_language': default_lang,
                'other_language': language,
                'progress': _get_model_stats(model, lambda x: x.filter(language=language)),
