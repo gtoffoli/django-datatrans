@@ -23,10 +23,14 @@ Example:
                                'title': <django.db.models.fields.CharField object at 0x911346c>}}
 '''
 REGISTRY = SortedDict()
+META = SortedDict()
 
 
 def get_registry():
     return REGISTRY
+
+def get_meta():
+    return META
 
 
 def get_default_language():
@@ -147,6 +151,8 @@ def register(model, modeltranslation):
         fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
 
         REGISTRY[model] = fields
+        META[model] = modeltranslation
+
         models.signals.pre_save.connect(_pre_save, sender=model)
         models.signals.post_save.connect(_post_save, sender=model)
 

@@ -79,6 +79,111 @@ def model_list(request):
                               context_instance=RequestContext(request))
 
 
+def commit_translations(request):
+    translations = [
+        (KeyValue.objects.get(pk=int(k.split('_')[1])), v) 
+        for k, v in request.POST.items() if 'translation_' in k]
+    for keyvalue, translation in translations:
+        empty = 'empty_%d' % keyvalue.pk in request.POST
+        ignore = 'ignore_%d' % keyvalue.pk in request.POST
+        if translation != '' or empty or ignore:
+            if keyvalue.value != translation:
+                if not ignore:
+                    keyvalue.value = translation
+                keyvalue.fuzzy = False
+            if ignore:
+                keyvalue.fuzzy = False
+            keyvalue.edited = True
+            keyvalue.save()
+
+
+def get_context_object(model, fields, language, default_lang, object):
+    object_item = {}
+    object_item['name'] = unicode(object)
+    object_item['id'] = object.id
+    object_item['fields'] = object_fields = []
+    for field in fields.values():
+        key = model.objects.filter(pk=object.pk).values(field.name)[0][field.name]
+        original = KeyValue.objects.get_keyvalue(key, default_lang)
+        translation = KeyValue.objects.get_keyvalue(key, language)
+        object_fields.append({
+            'name': field.name,
+            'verbose_name': unicode(field.verbose_name),
+            'original': original,
+            'translation': translation
+        })
+    return object_item
+
+
+def needs_translation(model, fields, language, object):
+    for field in fields.values():
+        key = model.objects.filter(pk=object.pk).values(field.name)[0][field.name]
+        translation = KeyValue.objects.get_keyvalue(key, language)
+        if not translation.edited:
+            return True
+    return False
+
+
+def editor(request, model, language, objects):
+    registry = utils.get_registry()
+    fields = registry[model]
+
+    default_lang = utils.get_default_language()
+    model_name = u'%s' % model._meta.verbose_name
+
+    first_unedited_translation = None
+    object_list = []
+    for object in objects:
+        context_object = get_context_object(
+            model, fields, language, default_lang, object)
+        object_list.append(context_object)
+
+        if first_unedited_translation is None:
+            for field in context_object['fields']:
+                tr = field['translation']
+                if not tr.edited:
+                    first_unedited_translation = tr
+                    break
+
+    context = {'model': model_name,
+               'objects': object_list,
+               'original_language': default_lang,
+               'other_language': language,
+               'progress': _get_model_stats(
+                   model, lambda x: x.filter(language=language)),
+               'first_unedited': first_unedited_translation}
+
+    return render_to_response(
+        'datatrans/model_detail.html', context, 
+        context_instance=RequestContext(request))
+
+
+def selector(request, model, language, objects):
+    fields = utils.get_registry()[model]
+    for object in objects:
+        if needs_translation(model, fields, language, object):
+            object.todo = True
+    context = {
+        'model': model.__name__,
+        'objects': objects
+    }
+    return render_to_response(
+        'datatrans/object_list.html', context,
+        context_instance=RequestContext(request))
+
+
+@user_passes_test(can_translate, settings.LOGIN_URL)
+def object_detail(request, slug, language, object_id):
+    if request.method == 'POST':
+        commit_translations(request)
+        return HttpResponseRedirect('.')
+
+    model = _get_model_entry(slug)
+    objects = model.objects.filter(id=int(object_id))
+
+    return editor(request, model, language, objects)
+
+
 @user_passes_test(can_translate, settings.LOGIN_URL)
 def model_detail(request, slug, language):
     '''
@@ -95,62 +200,16 @@ def model_detail(request, slug, language):
     '''
 
     if request.method == 'POST':
-        translations = [(KeyValue.objects.get(pk=int(k.split('_')[1])), v) for k, v in request.POST.items() if 'translation_' in k]
-        section = [k for k, v in request.POST.items() if 'section_' in k]
-        section = '#%s' % section[0] if len(section) > 0 else ''
-        for keyvalue, translation in translations:
-            empty = 'empty_%d' % keyvalue.pk in request.POST
-            ignore = 'ignore_%d' % keyvalue.pk in request.POST
-            if translation != '' or empty or ignore:
-                if keyvalue.value != translation:
-                    if not ignore:
-                        keyvalue.value = translation
-                    keyvalue.fuzzy = False
-                if ignore:
-                    keyvalue.fuzzy = False
-                keyvalue.edited = True
-                keyvalue.save()
-        return HttpResponseRedirect(reverse('datatrans_model_detail', args=(slug, language)) + section)
+        commit_translations(request)
+        return HttpResponseRedirect('.')
 
     model = _get_model_entry(slug)
-    registry = utils.get_registry()
-    fields = registry[model]
-
-    default_lang = utils.get_default_language()
-    model_name = u'%s' % model._meta.verbose_name
-
-    first_unedited_translation = None
+    meta = utils.get_meta()[model]
     objects = model.objects.all()
-    object_list = []
-    for object in objects:
-        object_item = {}
-        object_item['name'] = unicode(object)
-        object_item['id'] = object.id
-        object_item['fields'] = object_fields = []
-        object_list.append(object_item)
-        for field in fields.values():
-            key = model.objects.filter(pk=object.pk).values(field.name)[0][field.name]
-            original = KeyValue.objects.get_keyvalue(key, default_lang)
-            translation = KeyValue.objects.get_keyvalue(key, language)
-            if first_unedited_translation is None and (
-                not translation.edited or translation.fuzzy
-            ):
-                first_unedited_translation = translation
-            object_fields.append({
-                'name': field.name,
-                'verbose_name': unicode(field.verbose_name),
-                'original': original,
-                'translation': translation
-            })
-
-    context = {'model': model_name,
-               'objects': object_list,
-               'original_language': default_lang,
-               'other_language': language,
-               'progress': _get_model_stats(model, lambda x: x.filter(language=language)),
-               'first_unedited': first_unedited_translation}
-
-    return render_to_response('datatrans/model_detail.html', context, context_instance=RequestContext(request))
+    if getattr(meta, 'one_form_per_object', False):
+        return selector(request, model, language, objects)
+    else:
+        return editor(request, model, language, objects)
 
 
 @user_passes_test(can_translate, settings.LOGIN_URL)
