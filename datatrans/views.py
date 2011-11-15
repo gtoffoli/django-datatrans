@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from datatrans import utils
 from datatrans.models import KeyValue
+from datatrans.utils import count_model_words
 
 def can_translate(user):
     if not user.is_authenticated():
@@ -46,7 +47,6 @@ def _get_model_stats(model, filter=lambda x: x):
     done = keyvalues.filter(edited=True, fuzzy=False).count()
     return (done * 100 / total if total > 0 else 0, done, total)
 
-
 @user_passes_test(can_translate, settings.LOGIN_URL)
 def model_list(request):
     '''
@@ -69,10 +69,22 @@ def model_list(request):
                'model_name': u'%s' % model._meta.verbose_name,
                'field_names': [u'%s' % f.verbose_name for f in registry[model].values()],
                'stats': _get_model_stats(model),
-               'languages': [(l[0], l[1], _get_model_stats(model, filter=lambda x: x.filter(language=l[0]))) for l in languages],
+               'words': count_model_words(model),
+               'languages': [
+                    (
+                        l[0],
+                        l[1],
+                        _get_model_stats(
+                            model,
+                            filter=lambda x: x.filter(language=l[0])
+                        ),
+                    )
+                    for l in languages
+                ],
                } for model in registry]
 
-    context = {'models': models}
+    total_words = sum(m['words'] for m in models)
+    context = {'models': models, 'words': total_words}
 
     return render_to_response('datatrans/model_list.html',
                               context,
@@ -81,7 +93,7 @@ def model_list(request):
 
 def commit_translations(request):
     translations = [
-        (KeyValue.objects.get(pk=int(k.split('_')[1])), v) 
+        (KeyValue.objects.get(pk=int(k.split('_')[1])), v)
         for k, v in request.POST.items() if 'translation_' in k]
     for keyvalue, translation in translations:
         empty = 'empty_%d' % keyvalue.pk in request.POST
@@ -154,7 +166,7 @@ def editor(request, model, language, objects):
                'first_unedited': first_unedited_translation}
 
     return render_to_response(
-        'datatrans/model_detail.html', context, 
+        'datatrans/model_detail.html', context,
         context_instance=RequestContext(request))
 
 

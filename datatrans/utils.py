@@ -3,8 +3,9 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.utils import translation
 from django.utils.datastructures import SortedDict
+from django.contrib.contenttypes.models import ContentType
 
-from datatrans.models import KeyValue, make_digest
+from datatrans.models import KeyValue, make_digest, ModelWordCount, FieldWordCount
 
 
 '''
@@ -31,6 +32,51 @@ def get_registry():
 
 def get_meta():
     return META
+
+def count_words():
+    return sum(count_model_words(model) for model in REGISTRY)
+
+def count_model_words(model):
+    """Returns word count for the given model and language."""
+    ct = ContentType.objects.get_for_model(model)
+    model_wc, created = ModelWordCount.objects.get_or_create(
+        content_type=ct
+    )
+    if not model_wc.valid:
+        total_words = 0
+
+        for field in REGISTRY[model]:
+            field_wc, created = FieldWordCount.objects.get_or_create(
+                content_type=ct, field=field
+            )
+            if not field_wc.valid:
+                field_wc.total_words = \
+                    _count_field_words(model, field_wc.field)
+                field_wc.valid = True
+                field_wc.save()
+
+            total_words += field_wc.total_words
+
+        model_wc.total_words = total_words
+        model_wc.valid = True
+        model_wc.save()
+
+    return model_wc.total_words
+
+
+def _count_field_words(model, fieldname):
+    """Return word count for the given model and field."""
+    total = 0
+
+    for instance in model.objects.all():
+        words = _count_words(instance.__dict__[fieldname])
+        total += words
+    return total
+
+
+def _count_words(text):
+    """Count words in a piece of text."""
+    return len(text.split())
 
 
 def get_default_language():
@@ -118,6 +164,7 @@ def _pre_save(sender, instance, **kwargs):
                 # Check if the new value already exists, if not, create a new one. The old one will be obsoleted.
                 old_count = KeyValue.objects.filter(digest=old_digest).count()
                 new_count = KeyValue.objects.filter(digest=new_digest).count()
+                _invalidate_word_count(sender, field, instance)
                 if old_count != new_count or new_count == 0:
                     kvs = KeyValue.objects.filter(digest=old_digest)
                     for kv in kvs:
@@ -131,6 +178,28 @@ def _pre_save(sender, instance, **kwargs):
 def _post_save(sender, instance, created, **kwargs):
     translation.activate(getattr(instance, 'datatrans_old_language',
                                  get_default_language()))
+
+
+def _invalidate_word_count(model, field, instance):
+    content_type = ContentType.objects.get_for_model(model)
+
+    try:
+        model_wc = ModelWordCount.objects.get(content_type=content_type)
+    except ModelWordCount.DoesNotExist:
+        pass
+    else:
+        model_wc.valid = False
+        model_wc.save()
+
+    try:
+        field_wc = FieldWordCount.objects.get(
+            content_type=content_type, field=field.name
+        )
+    except FieldWordCount.DoesNotExist:
+        pass
+    else:
+        field_wc.valid = False
+        field_wc.save()
 
 
 def register(model, modeltranslation):

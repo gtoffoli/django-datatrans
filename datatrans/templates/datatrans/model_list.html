@@ -1,12 +1,14 @@
 {% extends "datatrans/base.html" %}
 {% load i18n %}
 {% load adminmedia %}
+{% load humanize %}
 {% block title %}{% trans "Models to translate" %} - {{ block.super }}{% endblock %}
 {% block coltype %}colMS{% endblock %}
 {% block bodyclass %}dashboard{% endblock %}
 {% block content %}
 
 <h1>{% trans "Models to translate" %}</h1>
+<h3>{% blocktrans with num=words|intcomma %}{{ num }} words{% endblocktrans %}</h3>
 
 <div id="content-main">
 	<p>
@@ -16,7 +18,8 @@
 	{% for model in models %}
 	<div class="module">
 		<table>
-		    <caption><span class="section">{{ model.model_name }} ({% for field in model.field_names %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})</span></caption>
+		    <caption><span class="section">{{ model.model_name }} ({% for field in model.field_names %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})</span>
+            <span style='float:right'>{% blocktrans with num=model.words|intcomma %}{{ num }} words{% endblocktrans %}</span> </caption>
 		    {% for lang in model.languages %}
 	        <tr>
 	            <th scope="row">{{ lang.1 }}</th>
