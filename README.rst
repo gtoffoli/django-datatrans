@@ -24,10 +24,17 @@ HOW TO USE
     from datatrans.utils import register
 
     class FlatPageTranslation(object):
-        fields = ('title', 'content',)
+        fields = ('title', 'content')
 
     register(FlatPage, FlatPageTranslation)
 
 4. Include the datatrans.urls in your urlconf somewhere, and point your browser to it!
 5. Translate away!
 
+Note: you can also search through your objects using translated query strings with the
+`datatrans_filter` on your manager. For example:
+
+    FlatPageTranslation.objects.datatrans_filter(title__icontains='zoek dit', language='nl')
+
+will return a QuerySet containing those objects whose dutch title contains the
+string 'zoek dit'.

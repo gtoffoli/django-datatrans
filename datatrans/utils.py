@@ -1,8 +1,11 @@
+import operator
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.utils import translation
 from django.utils.datastructures import SortedDict
+from django.contrib.contenttypes.models import ContentType
 
 from datatrans.models import KeyValue, make_digest
 
@@ -68,13 +71,15 @@ class FieldDescriptor(object):
         key = instance.__dict__[self.name]
         if not key:
             return u''
-        return KeyValue.objects.lookup(key, lang_code)
+        if instance.id is None:
+            return key
+        return KeyValue.objects.lookup(key, lang_code, instance, self.name)
 
     def __set__(self, instance, value):
         lang_code = get_current_language()
         default_lang = get_default_language()
 
-        if lang_code == default_lang or not self.name in instance.__dict__:
+        if lang_code == default_lang or not self.name in instance.__dict__ or instance.id is None:
             instance.__dict__[self.name] = value
         else:
             original = instance.__dict__[self.name]
@@ -82,7 +87,7 @@ class FieldDescriptor(object):
                 instance.__dict__[self.name] = value
                 original = value
 
-            kv = KeyValue.objects.get_keyvalue(original, lang_code)
+            kv = KeyValue.objects.get_keyvalue(original, lang_code, instance, self.name)
             kv.value = value
             kv.edited = True
             kv.save()
@@ -104,6 +109,7 @@ def _pre_save(sender, instance, **kwargs):
         except ObjectDoesNotExist:
             return None
 
+        ct = ContentType.objects.get_for_model(sender)
         register = get_registry()
         fields = register[sender].values()
         for field in fields:
@@ -112,21 +118,87 @@ def _pre_save(sender, instance, **kwargs):
             # If changed, update keyvalues
             if old_digest != new_digest:
                 # Check if the new value already exists, if not, create a new one. The old one will be obsoleted.
-                old_count = KeyValue.objects.filter(digest=old_digest).count()
-                new_count = KeyValue.objects.filter(digest=new_digest).count()
+                old_query = KeyValue.objects.filter(digest=old_digest,
+                                                    content_type__id=ct.id,
+                                                    object_id=original.id,
+                                                    field=field.name)
+                new_query = KeyValue.objects.filter(digest=new_digest,
+                                                    content_type__id=ct.id,
+                                                    object_id=original.id,
+                                                    field=field.name)
+
+                old_count = old_query.count()
+                new_count = new_query.count()
                 if old_count != new_count or new_count == 0:
-                    kvs = KeyValue.objects.filter(digest=old_digest)
-                    for kv in kvs:
-                        if KeyValue.objects.filter(digest=new_digest, language=kv.language).count() > 0:
+                    for kv in old_query:
+                        if new_query.filter(language=kv.language).count() > 0:
                             continue
                         new_value = instance.__dict__[field.name] if kv.language == default_lang else kv.value
-                        new_kv = KeyValue(digest=new_digest, language=kv.language, edited=kv.edited, fuzzy=True, value=new_value)
+                        new_kv = KeyValue(digest=new_digest,
+                                          content_type_id=ct.id,
+                                          object_id=original.id,
+                                          field=field.name,
+                                          language=kv.language,
+                                          edited=kv.edited,
+                                          fuzzy=True,
+                                          value=new_value)
                         new_kv.save()
 
 
 def _post_save(sender, instance, created, **kwargs):
     translation.activate(getattr(instance, 'datatrans_old_language',
                                  get_default_language()))
+
+
+def _datatrans_filter(self, language=None, **kwargs):
+    """
+    This filter allows you to search model instances on the
+    translated contents of a given field.
+
+    :param language: Language code (one of the keys of settings.LANGUAGES).
+                     Specifies which language to perform the query in.
+    :type language: str
+
+    :param <field_name>__<selector>: Indicates which field to search, and
+                                     which method (icontains, exact, ...) to use.
+                                     If you supply multiple filters, they will
+                                     be ORed together.
+    :type <field_name>__<selector>: str
+
+    :return: Queryset with the matching instances.
+    :rtype: :class:`django.db.models.query.QuerySet`
+
+    >>> Job.objects.datatrans_filter(function__icontains='ontwikkelaar', language='nl')
+    [<Job: Software Developer>]
+    """
+    if language is None:
+        language = translation.get_language()
+
+    registry = get_registry()
+    ct = ContentType.objects.get_for_model(self.model)
+    q_objects = []
+
+    for key, value in kwargs.items():
+        if '__' in key:
+            field, method = key.split('__', 1)
+        else:
+            field, method = key, 'exact'
+
+        if field not in registry[self.model].keys():
+            raise ValueError("Field '" + field + "' of " + self.model.__name__ +
+                            " has not been registered for translation.")
+
+        filters = { 'field' : field, 'value__' + method : value }
+        q_objects.append(models.Q(**filters))
+
+    query = KeyValue.objects.filter(content_type__id=ct.id, language=language)
+
+    if q_objects:
+        query = query.filter(reduce(operator.or_, q_objects))
+
+    object_ids = set(i for i , in query.values_list('object_id'))
+
+    return self.filter(id__in=object_ids)
 
 
 def register(model, modeltranslation):
@@ -153,6 +225,9 @@ def register(model, modeltranslation):
         for field in fields.values():
             setattr(model, field.name, FieldDescriptor(field.name))
 
+        # Set new filter method in model manager.
+        model.objects.__class__.datatrans_filter = _datatrans_filter
+
 
 def make_messages(build_digest_list=False):
     '''
@@ -175,7 +250,7 @@ def make_messages(build_digest_list=False):
                     value = object.__dict__[field.name]
                     if build_digest_list:
                         digest_list.append(make_digest(value))
-                    KeyValue.objects.lookup(value, lang_code)
+                    KeyValue.objects.lookup(value, lang_code, object, field.name)
             object_count += 1
 
     if build_digest_list:
