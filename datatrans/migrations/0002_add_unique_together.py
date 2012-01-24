@@ -6,6 +6,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("datatrans", "0001a_remove_duplicates"),
+    )
+
     def forwards(self, orm):
         
         # Adding unique constraint on 'KeyValue', fields ['language', 'digest']
