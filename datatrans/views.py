@@ -110,7 +110,7 @@ def model_detail(request, slug, language):
         items = []
         objects = model.objects.all().order_by(field.name)
         for object in objects:
-            key = getattr(object, field.name)
+            key = object.__dict__[field.name]
             original = KeyValue.objects.get_keyvalue(key, default_lang, object, field.name)
             translation = KeyValue.objects.get_keyvalue(key, language, object, field.name)
             if first_unedited_translation is None and (not translation.edited or translation.fuzzy):
