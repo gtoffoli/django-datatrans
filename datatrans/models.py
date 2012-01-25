@@ -8,8 +8,6 @@ from django.contrib.contenttypes import generic
 
 from hashlib import sha1
 
-#: List of fields that uniquely identify a KeyValue instance.
-kv_id_fields = ['language', 'digest', 'content_type__id', 'object_id', 'field']
 
 def make_digest(key):
     'Get the SHA1 hexdigest of the given key'
@@ -18,7 +16,8 @@ def make_digest(key):
 
 def _get_cache_keys(self):
     'Get all the cache keys for the given object'
-    values = tuple(getattr(self, attr.replace('__', '_')) for attr in kv_id_fields)
+    kv_id_fields = ('language', 'digest', 'content_type_id', 'object_id', 'field')
+    values = tuple(getattr(self, attr) for attr in kv_id_fields)
     return ('datatrans_%s_%s_%s_%s_%s' % values,
             'datatrans_%s' % self.id)
 
@@ -111,6 +110,8 @@ class KeyValueQuerySet(QuerySet):
             # super. There will be a where clause if this QuerySet has already
             # been filtered/cloned.
             return super(KeyValueQuerySet, self).get(*args, **kwargs)
+
+        kv_id_fields = ('language', 'digest', 'content_type', 'object_id', 'field')
 
         # Punt on anything more complicated than get by pk/id only...
         if len(kwargs) == 1:
