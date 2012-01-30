@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import operator
 
 from django.conf import settings
