@@ -150,7 +150,7 @@ def _post_save(sender, instance, created, **kwargs):
                                  get_default_language()))
 
 
-def _datatrans_filter(self, language=None, **kwargs):
+def _datatrans_filter(self, language=None, mode='and', **kwargs):
     """
     This filter allows you to search model instances on the
     translated contents of a given field.
@@ -159,18 +159,35 @@ def _datatrans_filter(self, language=None, **kwargs):
                      Specifies which language to perform the query in.
     :type language: str
 
+    :param mode: Determines how to combine multiple filter arguments. Mode
+                 'or' is fully supported. Mode 'and' only accepts one filter argument.
+    :type mode: str, one of ('and', 'or')
+
     :param <field_name>__<selector>: Indicates which field to search, and
                                      which method (icontains, exact, ...) to use.
-                                     If you supply multiple filters, they will
-                                     be ORed together.
+                                     If the value of this parameter is an iterable, we will
+                                     add multiple filters.
     :type <field_name>__<selector>: str
 
     :return: Queryset with the matching instances.
     :rtype: :class:`django.db.models.query.QuerySet`
 
+    Search for jobs whose Dutch function name contains 'ontwikkelaar':
+
     >>> Job.objects.datatrans_filter(function__icontains='ontwikkelaar', language='nl')
-    [<Job: Software Developer>]
+    ...
+
+    Search for jobs whose Dutch description contains both 'slim' and 'efficiënt':
+
+    >>> Job.objects.datatrans_filter(description__icontains=['slim', 'efficiënt'],
+                                     mode='and', language='nl')
+    ...
     """
+    assert mode in ('and', 'or')
+
+    if mode == 'and' and len(kwargs) > 1:
+        raise NotImplementedError("No support for multiple field name in 'and' mode.")
+
     if language is None:
         language = translation.get_language()
 
@@ -188,13 +205,22 @@ def _datatrans_filter(self, language=None, **kwargs):
             raise ValueError("Field '" + field + "' of " + self.model.__name__ +
                             " has not been registered for translation.")
 
-        filters = { 'field' : field, 'value__' + method : value }
-        q_objects.append(models.Q(**filters))
+        def add_filters(field, method, value):
+            filters = { 'field' : field, 'value__' + method : value }
+            q_objects.append(models.Q(**filters))
+
+        try:
+            # Add multiple filters if value is iterable.
+            map(lambda v: add_filters(field, method, v), value)
+        except TypeError:
+            # Iteration failed, therefore value contains single object.
+            add_filters(field, method, value)
 
     query = KeyValue.objects.filter(content_type__id=ct.id, language=language)
 
     if q_objects:
-        query = query.filter(reduce(operator.or_, q_objects))
+        op = operator.or_ if mode == 'or' else operator.and_
+        query = query.filter(reduce(op, q_objects))
 
     object_ids = set(i for i , in query.values_list('object_id'))
 

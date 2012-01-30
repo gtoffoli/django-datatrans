@@ -37,4 +37,5 @@ Note: you can also search through your objects using translated query strings wi
     FlatPageTranslation.objects.datatrans_filter(title__icontains='zoek dit', language='nl')
 
 will return a QuerySet containing those objects whose dutch title contains the
-string 'zoek dit'.
+string 'zoek dit'. Note that this filter API is not identical to Django's, read the docstring
+for more info.
