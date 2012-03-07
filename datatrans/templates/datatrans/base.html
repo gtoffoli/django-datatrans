@@ -5,6 +5,7 @@
 		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/base.css" />
 		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />
 		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/forms.css" />
+        {% block extrahead %}{% endblock %}
 	</head>
 	<body class="{% block bodyclass %}{% endblock %}">
 		<div id="container">

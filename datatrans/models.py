@@ -154,3 +154,26 @@ class KeyValue(models.Model):
 
     def __unicode__(self):
         return u'%s: %s' % (self.language, self.value)
+
+    class Meta:
+        unique_together = ('digest', 'language')
+
+class WordCount(models.Model):
+    class Meta:
+        abstract = True
+
+    total_words = models.IntegerField(default=0)
+    valid = models.BooleanField()
+
+class ModelWordCount(WordCount):
+    """Caches the total number of localized words for a model."""
+    content_type = models.ForeignKey(ContentType, db_index=True, unique=True)
+
+
+class FieldWordCount(WordCount):
+    """Caches the total number of localized words for a model field."""
+    content_type = models.ForeignKey(ContentType, db_index=True)
+    field = models.CharField(max_length=64, db_index=True)
+
+    class Meta:
+        unique_together = ('content_type', 'field')
