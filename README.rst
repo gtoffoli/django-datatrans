@@ -1,7 +1,7 @@
 django-datatrans
 ================
 
-By Jef Geskens; City Live nv
+By Jef Geskens, Koen Vossen; City Live nv and Robin Allen
 
 FEATURES
 --------
