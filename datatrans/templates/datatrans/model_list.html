@@ -18,7 +18,7 @@
 	<div class="module">
 		<table>
 		    <caption><span class="section">{{ model.model_name }} ({% for field in model.field_names %}{{ field }}{% if not forloop.last %}, {% endif %}{% endfor %})</span>
-            <span style='float:right'>{% blocktrans %}{{ model.words }} words{% endblocktrans %}</span> </caption>
+            <span style='float:right'>{{ model.words }} {% blocktrans %}words{% endblocktrans %}</span> </caption>
 		    {% for lang in model.languages %}
 	        <tr>
 	            <th scope="row">{{ lang.1 }}</th>
