@@ -33,14 +33,22 @@ class KeyValueManager(models.Manager):
         digest = make_digest(key)
         type_id = ContentType.objects.get_for_model(obj.__class__).id
         object_id = obj.id
-
-        keyvalue, created = self.get_or_create(digest=digest,
-                                               language=language,
-                                               content_type_id=type_id,
-                                               object_id=obj.id,
-                                               field=field,
-                                               defaults={ 'value': key })
-
+        try:
+            keyvalue, created = self.get_or_create(digest=digest,
+                                                   language=language,
+                                                   content_type_id=type_id,
+                                                   object_id=obj.id,
+                                                   field=field,
+                                                   defaults={'value': key})
+        except KeyValue.MultipleObjectsReturned:
+            keyvalues = self.filter(digest=digest,
+                                    language=language,
+                                    content_type_id=type_id,
+                                    object_id=obj.id,
+                                    field=field,
+                                    defaults={'value': key})
+            keyvalue = keyvalues[0]
+        
         return keyvalue
 
     def lookup(self, key, language, obj, field):
