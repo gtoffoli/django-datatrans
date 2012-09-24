@@ -79,7 +79,7 @@ def _count_field_words(model, fieldname):
 
 def _count_words(text):
     """Count words in a piece of text."""
-    return len(text.split())
+    return len(text.split()) if text else 0
 
 
 def get_default_language():
