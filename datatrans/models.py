@@ -30,7 +30,7 @@ class KeyValueManager(models.Manager):
         return KeyValueQuerySet(self.model)
 
     def get_keyvalue(self, key, language, obj, field):
-        digest = make_digest(key)
+        digest = make_digest(key or '')
         type_id = ContentType.objects.get_for_model(obj.__class__).id
         object_id = obj.id
         try:
