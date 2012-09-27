@@ -163,8 +163,8 @@ def _pre_save(sender, instance, **kwargs):
         register = get_registry()
         fields = register[sender].values()
         for field in fields:
-            old_digest = make_digest(original.__dict__[field.name])
-            new_digest = make_digest(instance.__dict__[field.name])
+            old_digest = make_digest(original.__dict__[field.name] or '')
+            new_digest = make_digest(instance.__dict__[field.name] or '')
             # If changed, update keyvalues
             if old_digest != new_digest:
                 # Check if the new value already exists, if not, create a new one. The old one will be obsoleted.
