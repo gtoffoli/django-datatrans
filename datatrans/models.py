@@ -32,19 +32,19 @@ class KeyValueManager(models.Manager):
     def get_keyvalue(self, key, language, obj, field):
         key = key or ''
         digest = make_digest(key)
-        type_id = ContentType.objects.get_for_model(obj.__class__).id
+        content_type = ContentType.objects.get_for_model(obj.__class__)
         object_id = obj.id
         try:
             keyvalue, created = self.get_or_create(digest=digest,
                                                    language=language,
-                                                   content_type_id=type_id,
+                                                   content_type_id=content_type.id,
                                                    object_id=obj.id,
                                                    field=field,
                                                    defaults={'value': key})
         except KeyValue.MultipleObjectsReturned:
             keyvalues = self.filter(digest=digest,
                                     language=language,
-                                    content_type_id=type_id,
+                                    content_type=content_type,
                                     object_id=obj.id,
                                     field=field,
                                     defaults={'value': key})
