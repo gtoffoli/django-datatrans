@@ -46,8 +46,7 @@ class KeyValueManager(models.Manager):
                                     language=language,
                                     content_type=content_type,
                                     object_id=obj.id,
-                                    field=field,
-                                    defaults={'value': key})
+                                    field=field)
             keyvalue = keyvalues[0]
         
         return keyvalue
