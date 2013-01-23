@@ -19,7 +19,7 @@
     <h1>{% trans "Translations for" %} {{ model }}</h1>
     <ul>
         {% for object in objects %}
-            <li><a {% if object.todo %}class="todo"{% endif %}href='{{ object.id }}'>{{ object }}</a>
+            <li><a {% if object.todo %}class="todo"{% endif %}href='{{ object.id }}'>{{ object }}</a></li>
         {% endfor %}
     </ul>
 {% endblock %}
