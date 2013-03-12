@@ -1,3 +1,4 @@
+import datetime
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
@@ -42,11 +43,13 @@ class KeyValueManager(models.Manager):
                                                    field=field,
                                                    defaults={'value': key})
         except KeyValue.MultipleObjectsReturned:
+            #print "OOPS, duplicates ", repr(key), ", ", repr(language), ", ", repr(obj), ", ", repr(field)
             keyvalues = self.filter(digest=digest,
                                     language=language,
                                     content_type=content_type,
                                     object_id=obj.id,
                                     field=field)
+            print "Hash = ", make_digest(key), " = ", str(key), ", ", str(language), ", ", str(len(keyvalues))
             keyvalue = keyvalues[0]
         
         return keyvalue
@@ -59,12 +62,12 @@ class KeyValueManager(models.Manager):
             return key
 
     def for_model(self, model, fields, modelfield=None):
-        '''
+        """
         Get KeyValues for a model. The fields argument is a list of model
         fields.
         If modelfield is specified, only KeyValue entries for that field will
         be returned.
-        '''
+        """
         field_names = [f.name for f in fields] if modelfield is None else [modelfield]
         ct = ContentType.objects.get_for_model(model)
         return self.filter(field__in=field_names, content_type__id=ct.id)
@@ -77,17 +80,17 @@ class KeyValueManager(models.Manager):
         return super(KeyValueManager, self).contribute_to_class(model, name)
 
     def _invalidate_cache(self, instance):
-        '''
+        """
         Explicitly set a None value instead of just deleting so we don't have
         any race conditions where.
-        '''
+        """
         for key in instance.cache_keys:
             cache.set(key, None, 5)
 
     def _post_save(self, instance, **kwargs):
-        '''
+        """
         Refresh the cache when saving
-        '''
+        """
         for key in instance.cache_keys:
             cache.set(key, instance, CACHE_DURATION)
 
@@ -140,8 +143,11 @@ class KeyValueQuerySet(QuerySet):
 
 
 class KeyValue(models.Model):
+    """
+    The datatrans magic is stored in this model. It stores the localized fields of models.
+    """
     content_type = models.ForeignKey(ContentType, null=True)
-    object_id = models.PositiveIntegerField(null=True)
+    object_id = models.PositiveIntegerField(null=True, default=None)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     field = models.TextField()
     language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
@@ -151,6 +157,7 @@ class KeyValue(models.Model):
     fuzzy = models.BooleanField(blank=True, default=False)
 
     digest = models.CharField(max_length=40, db_index=True)
+    updated = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
 
     objects = KeyValueManager()
 
@@ -168,6 +175,9 @@ class KeyValue(models.Model):
 
 
 class WordCount(models.Model):
+    """
+    It all happens here
+    """
     class Meta:
         abstract = True
 
@@ -176,14 +186,20 @@ class WordCount(models.Model):
 
 
 class ModelWordCount(WordCount):
-    """Caches the total number of localized words for a model."""
+    """
+    Caches the total number of localized words for a model
+    """
     content_type = models.ForeignKey(ContentType, db_index=True, unique=True)
 
 
 class FieldWordCount(WordCount):
-    """Caches the total number of localized words for a model field."""
+    """
+    Caches the total number of localized words for a model field.
+    """
+    class Meta:
+        unique_together = ('content_type', 'field')
+
     content_type = models.ForeignKey(ContentType, db_index=True)
     field = models.CharField(max_length=64, db_index=True)
 
-    class Meta:
-        unique_together = ('content_type', 'field')
+
