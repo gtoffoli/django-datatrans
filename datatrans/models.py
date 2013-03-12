@@ -10,12 +10,12 @@ from hashlib import sha1
 
 
 def make_digest(key):
-    'Get the SHA1 hexdigest of the given key'
+    """Get the SHA1 hexdigest of the given key"""
     return sha1(key.encode('utf-8')).hexdigest()
 
 
 def _get_cache_keys(self):
-    'Get all the cache keys for the given object'
+    """Get all the cache keys for the given object"""
     kv_id_fields = ('language', 'digest', 'content_type_id', 'object_id', 'field')
     values = tuple(getattr(self, attr) for attr in kv_id_fields)
     return ('datatrans_%s_%s_%s_%s_%s' % values,
@@ -166,12 +166,14 @@ class KeyValue(models.Model):
     class Meta:
         unique_together = ('digest', 'language')
 
+
 class WordCount(models.Model):
     class Meta:
         abstract = True
 
     total_words = models.IntegerField(default=0)
     valid = models.BooleanField()
+
 
 class ModelWordCount(WordCount):
     """Caches the total number of localized words for a model."""

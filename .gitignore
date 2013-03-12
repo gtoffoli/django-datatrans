@@ -41,3 +41,4 @@ local.properties
 
 # CDT-specific
 .cproject
+.idea

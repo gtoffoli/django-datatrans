@@ -24,6 +24,7 @@ def can_translate(user):
         else:
             return user.is_staff
 
+
 def _get_model_slug(model):
     ct = ContentType.objects.get_for_model(model)
     return u'%s.%s' % (ct.app_label, ct.model)
@@ -47,9 +48,10 @@ def _get_model_stats(model, filter=lambda x: x):
     done = keyvalues.filter(edited=True, fuzzy=False).count()
     return (done * 100 / total if total > 0 else 0, done, total)
 
+
 @user_passes_test(can_translate, settings.LOGIN_URL)
 def model_list(request):
-    '''
+    """
     Shows an overview of models to translate, along with the fields, languages
     and progress information.
     The context structure is defined as follows:
@@ -59,7 +61,7 @@ def model_list(request):
                            'stats': (75, 15, 20),
                            'slug': u'flags_app.flag',
                            'model_name': u'flag'}]}
-    '''
+    """
     registry = utils.get_registry()
 
     default_lang = utils.get_default_language()

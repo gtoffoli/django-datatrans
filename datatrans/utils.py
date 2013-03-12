@@ -33,11 +33,14 @@ META = SortedDict()
 def get_registry():
     return REGISTRY
 
+
 def get_meta():
     return META
 
+
 def count_words():
     return sum(count_model_words(model) for model in REGISTRY)
+
 
 def count_model_words(model):
     """Returns word count for the given model and language."""
@@ -83,10 +86,10 @@ def _count_words(text):
 
 
 def get_default_language():
-    '''
+    """
     Get the source language code if specified, or else just the default
     language code.
-    '''
+    """
     lang = getattr(settings, 'SOURCE_LANGUAGE_CODE', settings.LANGUAGE_CODE)
     default = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(default) == 0:
@@ -99,9 +102,9 @@ def get_default_language():
 
 
 def get_current_language():
-    '''
+    """
     Get the current lanuage
-    '''
+    """
     lang = translation.get_language()
     current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(current) == 0:
@@ -279,6 +282,7 @@ def _datatrans_filter(self, language=None, mode='and', **kwargs):
 
     return self.filter(id__in=object_ids)
 
+
 def _invalidate_word_count(model, field, instance):
     content_type = ContentType.objects.get_for_model(model)
 
@@ -302,7 +306,7 @@ def _invalidate_word_count(model, field, instance):
 
 
 def register(model, modeltranslation):
-    '''
+    """
     modeltranslation must be a class with the following attribute:
 
     fields = ('field1', 'field2', ...)
@@ -312,7 +316,7 @@ def register(model, modeltranslation):
     class BlogPostTranslation(object):
         fields = ('title', 'content',)
 
-    '''
+    """
 
     if not model in REGISTRY:
         # create a fields dict (models apparently lack this?!)
@@ -332,14 +336,14 @@ def register(model, modeltranslation):
 
 
 def make_messages(build_digest_list=False):
-    '''
+    """
     This function loops over all the registered models and, when necessary,
     creates KeyValue entries for the fields specified.
 
     When build_digest_list is True, a list of digests will be created
     for all the translatable data. When it is False, it will return
     the number of processed objects.
-    '''
+    """
     object_count = 0
     digest_list = []
 
