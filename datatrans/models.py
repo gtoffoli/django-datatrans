@@ -35,23 +35,13 @@ class KeyValueManager(models.Manager):
         digest = make_digest(key)
         content_type = ContentType.objects.get_for_model(obj.__class__)
         object_id = obj.id
-        try:
-            keyvalue, created = self.get_or_create(digest=digest,
-                                                   language=language,
-                                                   content_type_id=content_type.id,
-                                                   object_id=obj.id,
-                                                   field=field,
-                                                   defaults={'value': key})
-        except KeyValue.MultipleObjectsReturned:
-            #print "OOPS, duplicates ", repr(key), ", ", repr(language), ", ", repr(obj), ", ", repr(field)
-            keyvalues = self.filter(digest=digest,
-                                    language=language,
-                                    content_type=content_type,
-                                    object_id=obj.id,
-                                    field=field)
-            print "Hash = ", make_digest(key), " = ", str(key), ", ", str(language), ", ", str(len(keyvalues))
-            keyvalue = keyvalues[0]
-        
+
+        keyvalue, created = self.get_or_create(digest=digest,
+                                               language=language,
+                                               content_type_id=content_type.id,
+                                               object_id=obj.id,
+                                               field=field,
+                                               defaults={'value': key})
         return keyvalue
 
     def lookup(self, key, language, obj, field):
@@ -149,7 +139,7 @@ class KeyValue(models.Model):
     content_type = models.ForeignKey(ContentType, null=True)
     object_id = models.PositiveIntegerField(null=True, default=None)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-    field = models.TextField()
+    field = models.CharField(max_length=255)
     language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
 
     value = models.TextField(blank=True)
@@ -161,17 +151,12 @@ class KeyValue(models.Model):
 
     objects = KeyValueManager()
 
-    # South can't hack this index, it mangles the order and cannot handle
-    # foreign key and textfields. Just add it by hand.
-    #
-    # class Meta:
-    #     unique_together = ('language', 'content_type', 'field', 'object_id', 'digest')
-
     def __unicode__(self):
         return u'%s: %s' % (self.language, self.value)
 
     class Meta:
-        unique_together = ('digest', 'language')
+        #unique_together = ('digest', 'language')
+        unique_together = ('language', 'content_type', 'field', 'object_id', 'digest')
 
 
 class WordCount(models.Model):
