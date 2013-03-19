@@ -2,17 +2,22 @@
 from distutils.core import setup
 import datatrans
 
+LONG_DESCRIPTION = """
+
+"""
+
 setup(name='django-datatrans',
       version=datatrans.__version__,
-      description='Translate Django models without changing anything to existing applications and their underlying database.',
-      author='City Live nv',
-      author_email='jef.geskens@citylive.be',
+      description='Translate Django models without changing anything to existing applications and their '
+                  'underlying database.',
+      long_description=LONG_DESCRIPTION,
+      author='Jef Geskens, VikingCo nv',
+      author_email='jef.geskens@mobilevikings.com',
       url='http://github.com/citylive/django-datatrans/',
+      license='LICENSE.txt',
       packages=['datatrans'],
-      license='BSD',
       include_package_data=True,
       package_data={'datatrans': ['templates/datatrans/*'], },
-      zip_safe=False,
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
@@ -24,3 +29,4 @@ setup(name='django-datatrans',
           'Topic :: Software Development :: Internationalization',
       ],
 )
+

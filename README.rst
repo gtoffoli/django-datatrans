@@ -1,9 +1,13 @@
 django-datatrans
 ================
+Authors:
+* Jef Geskens <jef.geskens@mobilevikings.com>
+* Koen Vossen <koen.vossen@mobilevikings.com>
+* Gert Van Gool <gert.vangool@citylive.be>
+* Béres Botond <botondus@gmail.com>
+* Robin Allen
 
-By Jef Geskens, Koen Vossen; City Live nv and Robin Allen
-
-FEATURES
+Features
 --------
 
 * Translate Django models without changing anything to existing applications and their underlying database.
@@ -14,7 +18,7 @@ FEATURES
 * Transparent model API (in 99% of all cases, nothing has to be changed to original code).
 * Infinite caching for all strings (based on id and hash)
 
-HOW TO USE
+How to use
 ----------
 
 1. Add it to INSTALLED_APPS
