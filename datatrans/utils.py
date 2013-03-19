@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from datatrans.models import KeyValue, make_digest, ModelWordCount, FieldWordCount
 
 
-'''
+"""
 REGISTRY is a dict containing the registered models and their translation
 fields as a dict.
 Example:
@@ -25,7 +25,7 @@ Example:
 >>> REGISTRY
 {<class 'blog.models.Entry'>: {'body': <django.db.models.fields.TextField object at 0x911368c>,
                                'title': <django.db.models.fields.CharField object at 0x911346c>}}
-'''
+"""
 REGISTRY = SortedDict()
 META = SortedDict()
 
@@ -43,7 +43,9 @@ def count_words():
 
 
 def count_model_words(model):
-    """Returns word count for the given model and language."""
+    """
+    Returns word count for the given model and language.
+    """
     ct = ContentType.objects.get_for_model(model)
     model_wc, created = ModelWordCount.objects.get_or_create(
         content_type=ct
@@ -56,8 +58,7 @@ def count_model_words(model):
                 content_type=ct, field=field
             )
             if not field_wc.valid:
-                field_wc.total_words = \
-                    _count_field_words(model, field_wc.field)
+                field_wc.total_words = _count_field_words(model, field_wc.field)
                 field_wc.valid = True
                 field_wc.save()
 
@@ -71,7 +72,9 @@ def count_model_words(model):
 
 
 def _count_field_words(model, fieldname):
-    """Return word count for the given model and field."""
+    """
+    Return word count for the given model and field.
+    """
     total = 0
 
     for instance in model.objects.all():
@@ -81,7 +84,9 @@ def _count_field_words(model, fieldname):
 
 
 def _count_words(text):
-    """Count words in a piece of text."""
+    """
+    Count words in a piece of text.
+    """
     return len(text.split()) if text else 0
 
 
@@ -103,7 +108,7 @@ def get_default_language():
 
 def get_current_language():
     """
-    Get the current lanuage
+    Get the current language
     """
     lang = translation.get_language()
     current = [l[0] for l in settings.LANGUAGES if l[0] == lang]

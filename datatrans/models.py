@@ -35,7 +35,6 @@ class KeyValueManager(models.Manager):
         digest = make_digest(key)
         content_type = ContentType.objects.get_for_model(obj.__class__)
         object_id = obj.id
-
         keyvalue, created = self.get_or_create(digest=digest,
                                                language=language,
                                                content_type_id=content_type.id,
@@ -99,13 +98,13 @@ class KeyValueQuerySet(QuerySet):
             yield obj
 
     def get(self, *args, **kwargs):
-        '''
+        """
         Checks the cache to see if there's a cached entry for this pk. If not,
         fetches using super then stores the result in cache.
 
         Most of the logic here was gathered from a careful reading of
         ``django.db.models.sql.query.add_filter``
-        '''
+        """
         if self.query.where:
             # If there is any other ``where`` filter on this QuerySet just call
             # super. There will be a where clause if this QuerySet has already
