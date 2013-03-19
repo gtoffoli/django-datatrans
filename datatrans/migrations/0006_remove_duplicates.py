@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import datetime
+from collections import defaultdict
 from django.db import connection, transaction
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
 
     @transaction.commit_on_success
-    def _remove_duplicates(self):
+    def remove_duplicates_mysql(self):
         """
         Removes all the duplicates from the datatrans_keyvalue table. First we detect what the most horrible
         duplication count is of a KeyValue.  Then we iterate through the count and start deleting the newest duplicate
@@ -55,30 +54,51 @@ class Migration(SchemaMigration):
         else:
             print "   - No duplicates found"
 
+    def remove_duplicates_default(self, orm):
+        """
+        A cleaner implementation, but its way more slower slower
+
+        @param orm:
+        """
+        kv_map = defaultdict(lambda: [])
+        deleted = 0
+
+        for kv in orm.KeyValue.objects.all():
+            # For some reason a null object exists in the database
+            if not kv.id:
+                continue
+
+            key = (kv.language, kv.digest, kv.content_type, kv.object_id, kv.field)
+            kv_map[key].append(kv)
+
+            for (kv.language, kv.digest, kv.content_type, kv.object_id, kv.field), kv_list in kv_map.items():
+                if len(kv_list) == 1:
+                    continue
+
+                kv_list.sort(key=lambda kv: kv.id)
+
+                for kv in kv_list[:-1]:
+                    if kv.id:
+                        print 'Deleting KeyValue', kv.id, ", ", str(kv)
+                        deleted += 1
+                        kv.delete()
+
+        print "Duplicates deleted: ", deleted
+
     def forwards(self, orm):
-        # Removing unique constraint on 'KeyValue', fields ['language', 'digest']
-        try:
-            db.delete_unique('datatrans_keyvalue', ['language', 'digest'])
-        except ValueError:
-            print "  WARNING: current index didn't exist"
-
         # First we delete duplicate entries before we can create the new unique index
-        self._remove_duplicates()
-
-        # Changing field 'KeyValue.field'
-        db.alter_column('datatrans_keyvalue', 'field', self.gf('django.db.models.fields.CharField')(max_length=255))
-        # Adding unique constraint on 'KeyValue', fields ['field', 'digest', 'content_type', 'language', 'object_id']
-        db.create_unique('datatrans_keyvalue', ['field', 'digest', 'content_type_id', 'language', 'object_id'])
+        if not db.dry_run:
+            if db.backend_name == 'mysql':
+                print "Remove duplicates: mysql"
+                self.remove_duplicates_mysql()
+            else:
+                print "Remove duplicates: default"
+                self.remove_duplicates_default(orm)
+        else:
+            print "Dry running deletion of duplicates"
 
     def backwards(self, orm):
-        # Removing unique constraint on 'KeyValue', fields ['field', 'digest', 'content_type', 'language', 'object_id']
-        db.delete_unique('datatrans_keyvalue', ['field', 'digest', 'content_type_id', 'language', 'object_id'])
-
-
-        # Changing field 'KeyValue.field'
-        db.alter_column('datatrans_keyvalue', 'field', self.gf('django.db.models.fields.TextField')())
-        # Adding unique constraint on 'KeyValue', fields ['language', 'digest']
-        db.create_unique('datatrans_keyvalue', ['language', 'digest'])
+        pass
 
     models = {
         'contenttypes.contenttype': {
@@ -97,11 +117,11 @@ class Migration(SchemaMigration):
             'valid': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         'datatrans.keyvalue': {
-            'Meta': {'unique_together': "(('language', 'content_type', 'field', 'object_id', 'digest'),)", 'object_name': 'KeyValue'},
+            'Meta': {'unique_together': "(('digest', 'language'),)", 'object_name': 'KeyValue'},
             'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True'}),
             'digest': ('django.db.models.fields.CharField', [], {'max_length': '40', 'db_index': 'True'}),
             'edited': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'field': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'field': ('django.db.models.fields.TextField', [], {}),
             'fuzzy': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),

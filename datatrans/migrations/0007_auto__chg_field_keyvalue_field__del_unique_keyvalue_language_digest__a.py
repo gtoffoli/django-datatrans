@@ -1,22 +1,31 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'KeyValue.updated'
-        db.add_column('datatrans_keyvalue', 'updated',
-                      self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, auto_now=True, blank=True),
-                      keep_default=False)
+        # Removing unique constraint on 'KeyValue', fields ['language', 'digest']
+        try:
+            db.delete_unique('datatrans_keyvalue', ['language', 'digest'])
+        except ValueError:
+            print "  WARNING: current index didn't exist"
+
+        # Changing field 'KeyValue.field'
+        db.alter_column('datatrans_keyvalue', 'field', self.gf('django.db.models.fields.CharField')(max_length=255))
+        # Adding unique constraint on 'KeyValue', fields ['field', 'digest', 'content_type', 'language', 'object_id']
+        db.create_unique('datatrans_keyvalue', ['field', 'digest', 'content_type_id', 'language', 'object_id'])
 
     def backwards(self, orm):
-        # Deleting field 'KeyValue.updated'
-        db.delete_column('datatrans_keyvalue', 'updated')
+        # Removing unique constraint on 'KeyValue', fields ['field', 'digest', 'content_type', 'language', 'object_id']
+        db.delete_unique('datatrans_keyvalue', ['field', 'digest', 'content_type_id', 'language', 'object_id'])
 
+
+        # Changing field 'KeyValue.field'
+        db.alter_column('datatrans_keyvalue', 'field', self.gf('django.db.models.fields.TextField')())
+        # Adding unique constraint on 'KeyValue', fields ['language', 'digest']
+        db.create_unique('datatrans_keyvalue', ['language', 'digest'])
 
     models = {
         'contenttypes.contenttype': {
@@ -35,11 +44,11 @@ class Migration(SchemaMigration):
             'valid': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         'datatrans.keyvalue': {
-            'Meta': {'unique_together': "(('digest', 'language'),)", 'object_name': 'KeyValue'},
+            'Meta': {'unique_together': "(('language', 'content_type', 'field', 'object_id', 'digest'),)", 'object_name': 'KeyValue'},
             'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True'}),
             'digest': ('django.db.models.fields.CharField', [], {'max_length': '40', 'db_index': 'True'}),
             'edited': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'field': ('django.db.models.fields.TextField', [], {}),
+            'field': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'fuzzy': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'language': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
