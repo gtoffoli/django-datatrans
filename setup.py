@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import (setup, find_packages)
 import datatrans
 
 LONG_DESCRIPTION = """
@@ -14,10 +14,10 @@ setup(name='django-datatrans',
       author='Jef Geskens, VikingCo nv',
       author_email='jef.geskens@mobilevikings.com',
       url='http://github.com/citylive/django-datatrans/',
-      license='LICENSE.txt',
-      packages=['datatrans'],
+      license='LICENSE',
+      packages=find_packages(),
       include_package_data=True,
-      package_data={'datatrans': ['templates/datatrans/*'], },
+      zip_safe=False,
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
