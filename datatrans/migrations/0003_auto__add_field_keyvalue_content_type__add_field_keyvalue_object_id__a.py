@@ -9,7 +9,10 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Removing unique constraint on 'KeyValue', fields ['language', 'digest']
-        db.delete_unique('datatrans_keyvalue', ['language', 'digest'])
+        try:
+            db.delete_unique('datatrans_keyvalue', ['language', 'digest'])
+        except ValueError:
+            print "  WARNING: current index didn't exist"
 
         # Adding field 'KeyValue.content_type'
         db.add_column('datatrans_keyvalue', 'content_type', self.gf('django.db.models.fields.related.ForeignKey')(default=None, null=True, to=orm['contenttypes.ContentType']), keep_default=False)
@@ -19,7 +22,6 @@ class Migration(SchemaMigration):
 
         # Adding field 'KeyValue.field'
         db.add_column('datatrans_keyvalue', 'field', self.gf('django.db.models.fields.TextField')(default=""), keep_default=False)
-
 
     def backwards(self, orm):
         
@@ -34,7 +36,6 @@ class Migration(SchemaMigration):
 
         # Adding unique constraint on 'KeyValue', fields ['language', 'digest']
         db.create_unique('datatrans_keyvalue', ['language', 'digest'])
-
 
     models = {
         'contenttypes.contenttype': {

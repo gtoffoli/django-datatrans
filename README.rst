@@ -1,11 +1,30 @@
 django-datatrans
 ================
 
-By Jef Geskens, Koen Vossen; City Live nv and Robin Allen
+Authors:
 
-FEATURES
+* Jef Geskens <jef.geskens@mobilevikings.com>
+* Koen Vossen <koen.vossen@mobilevikings.com>
+* Gert Van Gool <gert.vangool@citylive.be>
+* Béres Botond <botondus@gmail.com>
+* Robin Allen
+
+Important note when upgrading to version 0.1.2
+----------------------------------------------
+The migration script adds a new unique index, like it was before. But this can fail because duplicates might exist
+in the database. The new unique index on the model KeyValue consists out of the
+following fields: ('language', 'content_type', 'field', 'object_id', 'digest')
+
+You can make sure manually that you don't have duplicate entries in your database or you can use the following command
+to delete duplicates:
+
+    python manage.py deleteduplicates
+
+It retains the oldest record and deletes the newest duplicates.  It only works for mysql since it executes raw queries,
+this is way more faster that using the south api (it lasts for hours).
+
+Features
 --------
-
 * Translate Django models without changing anything to existing applications and their underlying database.
 * Uses a registration approach.
 * All translations are stored in one extra lookup table. Existing database tables remain untouched.
@@ -14,9 +33,8 @@ FEATURES
 * Transparent model API (in 99% of all cases, nothing has to be changed to original code).
 * Infinite caching for all strings (based on id and hash)
 
-HOW TO USE
+How to use
 ----------
-
 1. Add it to INSTALLED_APPS
 2. Syncdb
 3. Register models (example for FlatPage model):

@@ -41,3 +41,9 @@ local.properties
 
 # CDT-specific
 .cproject
+.idea
+
+# Ignore build output
+build
+MANIFEST
+README.html
