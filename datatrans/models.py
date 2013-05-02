@@ -1,5 +1,4 @@
 import datetime
-import logging
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
@@ -9,8 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 
 from hashlib import sha1
-
-logger = logging.getLogger(__name__)
 
 
 def make_digest(key):
@@ -48,12 +45,6 @@ class KeyValueManager(models.Manager):
 
     def lookup(self, key, language, obj, field):
         kv = self.get_keyvalue(key, language, obj, field)
-
-        # Temporary logging for tracking a weird bug
-        # TODO: delete this!
-        if isinstance(kv, int):
-            logger.warning('Oh no, the KeyValue is an int %s, %s, %s, %s', key, language, obj, field)
-
         if kv.edited:
             return kv.value
         else:
