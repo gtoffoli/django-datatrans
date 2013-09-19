@@ -1,5 +1,5 @@
-VERSION = (0, 1, 4)
-# 1.3 is currently on pypi
+VERSION = (0, 1, 5)
+# 1.5 is currently on pypi
 
 
 def get_version():
@@ -16,10 +16,8 @@ def autodiscover():
     """
     Same principle as for importing the admin modules with autodiscover() from django.contrib.admin
     """
-    import copy
     import logging
     from django.conf import settings
-    from django.contrib.admin.sites import site
     from django.utils.importlib import import_module
     from django.utils.module_loading import module_has_submodule
 
@@ -27,15 +25,10 @@ def autodiscover():
 
     for app in settings.INSTALLED_APPS:
         mod = import_module(app)
-        before_import_registry = copy.copy(site._registry)
 
         try:
             import_module('%s.datatranslation' % app)
-            logger.info("Imported %s.datatranslation" % app)
+            logger.info("Datatrans imported '%s.datatranslation'" % app)
         except:
-            site._registry = before_import_registry
-
             if module_has_submodule(mod, 'datatranslation'):
-               raise SystemError('Oh snap, weird stuff going on. We detected a submodule called \'datatrans\' in %s' % app)
-
-
+               raise SystemError('Oh snap, weird stuff going on. We detected a submodule called \'datatranslation\' in %s' % app)
