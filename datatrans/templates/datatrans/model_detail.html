@@ -2,11 +2,11 @@
 {% load i18n %}
 {% block title %}{% trans "Translations for" %} {{ model }} - {{ block.super }}{% endblock %}
 {% block breadcrumbs %}
-    {{ block.super }} 
-    &rsaquo; 
+    {{ block.super }}
+    &rsaquo;
     {% ifequal objects|length 1 %}
         <a href='..'>{% trans "Translations for" %} {{ model }}</a>
-        &rsaquo; 
+        &rsaquo;
         {% for object in objects %}{{ object.name }}{% endfor %}
     {% else %}
         {% trans "Translations for" %} {{ model }}
@@ -28,28 +28,28 @@
 <h1>{% trans "Translations for" %} {{ model }}</h1>
 {% endifnotequal %}
 <div style="width: 128px; position: fixed; right: 8px; top: 72px; border: 1px solid #CCC; padding: 8px; background: #FFF;">
-	{% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
-	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
+    {% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
+    <div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
         <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE url({{ STATIC }}admin/img/admin/default-bg.gif) repeat-x;"></div>
-	</div>
+    </div>
 </div>
 <p>
-	{% if first_unedited %}
-	<a href="#section_{{ first_unedited.pk }}">{% trans "Jump to first to do" %}</a><br />
-	{% endif %}
+    {% if first_unedited %}
+    <a href="#section_{{ first_unedited.pk }}">{% trans "Jump to first to do" %}</a><br />
+    {% endif %}
 
-	{% for field in fields %}
-	<a href="#{{ field.name }}">{% blocktrans with field.verbose_name as field_verbose_name %}Jump to {{ field_verbose_name }} field{% endblocktrans %}</a><br />
-	{% endfor %}
+    {% for field in fields %}
+    <a href="#{{ field.name }}">{% blocktrans with field.verbose_name as field_verbose_name %}Jump to {{ field_verbose_name }} field{% endblocktrans %}</a><br />
+    {% endfor %}
 </p>
 <p>
-	<div style="width: 12px; height: 12px; border: 1px solid #CCC; float: left; margin-right: 4px;"></div>
-	<div style="float: left; height: 12px; margin-right: 16px;">{% trans "done" %}</div>
-	<div style="width: 12px; height: 12px; border: 1px solid #CCC; background: #DEF; float: left; margin-right: 4px;"></div>
-	<div style="float: left; height: 12px; margin-right: 16px;">{% trans "to do" %}</div>
-	<div style="width: 12px; height: 12px; border: 1px solid #CCC; background: #FED; float: left; margin-right: 4px;"></div>
-	<div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do (fuzzy)" %}</div>
-	<div style="clear: both;"></div>
+    <div style="width: 12px; height: 12px; border: 1px solid #CCC; float: left; margin-right: 4px;"></div>
+    <div style="float: left; height: 12px; margin-right: 16px;">{% trans "done" %}</div>
+    <div style="width: 12px; height: 12px; border: 1px solid #CCC; background: #DEF; float: left; margin-right: 4px;"></div>
+    <div style="float: left; height: 12px; margin-right: 16px;">{% trans "to do" %}</div>
+    <div style="width: 12px; height: 12px; border: 1px solid #CCC; background: #FED; float: left; margin-right: 4px;"></div>
+    <div style="float: left; height: 12px; margin-right: 4px;">{% trans "to do (fuzzy)" %}</div>
+    <div style="clear: both;"></div>
 </p>
 
 
@@ -67,7 +67,7 @@
         {% for field in object.fields %}
         {% if field.original.value %}
         <tr class="fieldname"
-            id="section_{{ field.translation.pk }}" 
+            id="section_{{ field.translation.pk }}"
             {% if not field.translation.edited %}
                 style="background: #def;"
             {% else %}
@@ -76,12 +76,12 @@
                 {% endif %}
             {% endif %}
         >
-            <td><a 
+            <td><a
                     href="#section_{{ field.translation.pk }}"
                     title="{% trans "Link to this translation" %}"
             >¶</a></td>
             <td colspan="3">{{ field.verbose_name }}</td></tr>
-        <tr 
+        <tr
             {% if not field.translation.edited %}
                 style="background: #def;"
             {% else %}
@@ -96,7 +96,7 @@
                 >{{ field.original.value }}</textarea>
             </td>
             <td>
-                <textarea 
+                <textarea
                     name="translation_{{ field.translation.pk }}"
                     cols="60" rows="6"
                 >{% if field.translation.edited %}{{ field.translation.value }}{% endif %}</textarea>
