@@ -2,9 +2,9 @@
 <html>
 	<head>
 		<title>{% block title %}{% trans "Data Translation" %}{% endblock %}</title>
-		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/base.css" />
-		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />
-		<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/forms.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/base.css" />
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/dashboard.css" />
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css" />
         {% block extrahead %}{% endblock %}
 	</head>
 	<body class="{% block bodyclass %}{% endblock %}">

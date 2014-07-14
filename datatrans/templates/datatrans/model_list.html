@@ -1,6 +1,5 @@
 {% extends "datatrans/base.html" %}
 {% load i18n %}
-{% load adminmedia %}
 {% block title %}{% trans "Models to translate" %} - {{ block.super }}{% endblock %}
 {% block coltype %}colMS{% endblock %}
 {% block bodyclass %}dashboard{% endblock %}
@@ -25,7 +24,7 @@
 	            <td>{{ lang.2.0 }}%</td>
 	            <td>
 	            	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
-					     <div style="margin: 0; padding: 0; width: {% widthratio lang.2.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
+                        <div style="margin: 0; padding: 0; width: {% widthratio lang.2.0 100 64 %}px; height: 12px; background: #ACE url({{ STATIC_URL }}admin/img/admin/default-bg.gif) repeat-x;"></div>
 					</div>
 	            </td>
 	            <td><a href="{% url datatrans_model_detail model.slug lang.0 %}" class="changelink">{% trans 'Change' %}</a></td>
@@ -36,7 +35,7 @@
 		    	<td>{{ model.stats.0 }}%</td>
 		    	<td>
 	            	<div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
-					     <div style="margin: 0; padding: 0; width: {% widthratio model.stats.0 100 64 %}px; height: 12px; background: #ACE url({% admin_media_prefix %}img/admin/default-bg.gif) repeat-x;"></div>
+                        <div style="margin: 0; padding: 0; width: {% widthratio model.stats.0 100 64 %}px; height: 12px; background: #ACE url({{ STATIC_URL }}admin/img/admin/default-bg.gif) repeat-x;"></div>
 					</div>
 	            </td>
 	            <td>&nbsp;</td>
