@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load url from future %}
 <html>
 	<head>
 		<title>{% block title %}{% trans "Data Translation" %}{% endblock %}</title>
@@ -20,7 +21,7 @@
 	        {% block nav-global %}{% endblock %}
 	    </div>
 
-		<div class="breadcrumbs">{% block breadcrumbs %}<a href="{% url datatrans_model_list %}">{% trans 'Models' %}</a>{% endblock %}</div>
+		<div class="breadcrumbs">{% block breadcrumbs %}<a href="{% url 'datatrans_model_list' %}">{% trans 'Models' %}</a>{% endblock %}</div>
 
 		{% if messages %}
         <ul class="messagelist">{% for message in messages %}<li>{{ message|escape }}</li>{% endfor %}</ul>
