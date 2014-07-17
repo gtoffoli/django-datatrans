@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import operator
+import django
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
@@ -325,7 +326,12 @@ def register(model, modeltranslation):
 
     if not model in REGISTRY:
         # create a fields dict (models apparently lack this?!)
-        fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
+        if django.VERSION >= (1, 6):
+            # In 1.6, '_fields()' does not exist anymore; in 1.5 both exists and
+            # in 1.4, '.fields' doesn't exist yet.
+            fields = dict([(f.name, f) for f in model._meta.fields if f.name in modeltranslation.fields])
+        else:
+            fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
 
         REGISTRY[model] = fields
         META[model] = modeltranslation
