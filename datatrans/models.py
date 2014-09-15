@@ -166,7 +166,7 @@ class WordCount(models.Model):
         abstract = True
 
     total_words = models.IntegerField(default=0)
-    valid = models.BooleanField()
+    valid = models.BooleanField(default=False)
 
 
 class ModelWordCount(WordCount):
