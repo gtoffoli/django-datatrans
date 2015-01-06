@@ -27,7 +27,7 @@ CACHE_DURATION = getattr(settings, 'DATATRANS_CACHE_DURATION', 60 * 60)
 
 
 class KeyValueManager(models.Manager):
-    def get_query_set(self):
+    def get_queryset(self):
         return KeyValueQuerySet(self.model)
 
     def get_keyvalue(self, key, language, obj, field):
