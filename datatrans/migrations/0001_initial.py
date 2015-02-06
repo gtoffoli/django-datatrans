@@ -1,41 +1,67 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
-
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        
-        # Adding model 'KeyValue'
-        db.create_table('datatrans_keyvalue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('digest', self.gf('django.db.models.fields.CharField')(max_length=40, db_index=True)),
-            ('language', self.gf('django.db.models.fields.CharField')(max_length=5, db_index=True)),
-            ('value', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('edited', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('fuzzy', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('datatrans', ['KeyValue'])
 
 
-    def backwards(self, orm):
-        
-        # Deleting model 'KeyValue'
-        db.delete_table('datatrans_keyvalue')
+class Migration(migrations.Migration):
 
+    dependencies = [
+        ('contenttypes', '0001_initial'),
+    ]
 
-    models = {
-        'datatrans.keyvalue': {
-            'Meta': {'object_name': 'KeyValue'},
-            'digest': ('django.db.models.fields.CharField', [], {'max_length': '40', 'db_index': 'True'}),
-            'edited': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'fuzzy': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'language': ('django.db.models.fields.CharField', [], {'max_length': '5', 'db_index': 'True'}),
-            'value': ('django.db.models.fields.TextField', [], {'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['datatrans']
+    operations = [
+        migrations.CreateModel(
+            name='FieldWordCount',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('total_words', models.IntegerField(default=0)),
+                ('valid', models.BooleanField(default=False)),
+                ('field', models.CharField(max_length=64, db_index=True)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='KeyValue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('object_id', models.PositiveIntegerField(default=None, null=True)),
+                ('field', models.CharField(max_length=255)),
+                ('language', models.CharField(db_index=True, max_length=5, choices=[(b'nl-be', b'NL'), (b'fr-be', b'FR'), (b'en-be', b'EN'), (b'nl-nl', b'NL'), (b'en-nl', b'EN'), (b'pl-pl', b'PL'), (b'en-pl', b'PL')])),
+                ('value', models.TextField(blank=True)),
+                ('edited', models.BooleanField(default=False)),
+                ('fuzzy', models.BooleanField(default=False)),
+                ('digest', models.CharField(max_length=40, db_index=True)),
+                ('updated', models.DateTimeField(default=datetime.datetime.now, auto_now=True)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ModelWordCount',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('total_words', models.IntegerField(default=0)),
+                ('valid', models.BooleanField(default=False)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', unique=True)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='keyvalue',
+            unique_together=set([('language', 'content_type', 'field', 'object_id', 'digest')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='fieldwordcount',
+            unique_together=set([('content_type', 'field')]),
+        ),
+    ]
