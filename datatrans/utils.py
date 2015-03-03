@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 import operator
 import django
+from collections import OrderedDict
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.utils import translation
-from django.utils.datastructures import SortedDict
 from django.contrib.contenttypes.models import ContentType
 
 from datatrans.models import KeyValue, make_digest, ModelWordCount, FieldWordCount
@@ -27,8 +27,8 @@ Example:
 {<class 'blog.models.Entry'>: {'body': <django.db.models.fields.TextField object at 0x911368c>,
                                'title': <django.db.models.fields.CharField object at 0x911346c>}}
 """
-REGISTRY = SortedDict()
-META = SortedDict()
+REGISTRY = OrderedDict()
+META = OrderedDict()
 
 
 def get_registry():

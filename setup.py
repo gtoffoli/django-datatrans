@@ -28,5 +28,8 @@ setup(name='django-datatrans',
           'Framework :: Django',
           'Topic :: Software Development :: Internationalization',
       ],
+      install_requires=[
+          'Django>=1.5',
+      ]
 )
 

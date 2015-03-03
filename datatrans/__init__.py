@@ -1,3 +1,5 @@
+from importlib import import_module
+
 VERSION = (0, 1, 5)
 # 1.5 is currently on pypi
 
@@ -17,7 +19,6 @@ def autodiscover():
     Same principle as for importing the admin modules with autodiscover() from django.contrib.admin
     """
     from django.conf import settings
-    from django.utils.importlib import import_module
 
     for app in settings.INSTALLED_APPS:
         try:
