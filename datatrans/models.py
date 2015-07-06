@@ -146,7 +146,7 @@ class KeyValue(models.Model):
     fuzzy = models.BooleanField(blank=True, default=False)
 
     digest = models.CharField(max_length=40, db_index=True)
-    updated = models.DateTimeField(auto_now=True, default=datetime.datetime.now)
+    updated = models.DateTimeField(auto_now=True)
 
     objects = KeyValueManager()
 
