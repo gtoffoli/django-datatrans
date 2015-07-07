@@ -112,6 +112,8 @@ def get_current_language():
     Get the current language
     """
     lang = translation.get_language()
+    if lang is None:
+        return get_default_language()
     current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(current) == 0:
         lang = lang.split('-')[0]
