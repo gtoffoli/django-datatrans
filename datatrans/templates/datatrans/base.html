@@ -1,12 +1,12 @@
-{% load i18n %}
+{% load i18n static %}
 {% load staticfiles %}
 {% load url from future %}
 <html>
     <head>
         <title>{% block title %}{% trans "Data Translation" %}{% endblock %}</title>
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/base.css" />
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/dashboard.css" />
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}admin/css/forms.css" />
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}" />
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}" />
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}" />
         {% block extrahead %}{% endblock %}
     </head>
     <body class="{% block bodyclass %}{% endblock %}">
