@@ -68,6 +68,8 @@ class DatatransTests(TestCase):
         kv.delete()
         self.assertEqual(cache.get(cache_key), None)
 
+        translation.deactivate()
+
     def test_fuzzy(self):
         kv = KeyValue.objects.get_keyvalue(self.message_en, self.nl, self.instance, self.field)
         kv.value = self.message_nl
