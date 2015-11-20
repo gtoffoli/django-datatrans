@@ -32,11 +32,17 @@ def _get_model_slug(model):
 
 def _get_model_entry(slug):
     app_label, model_slug = slug.split('.')
-    ct = ContentType.objects.get(app_label=app_label, model=model_slug)
+
+    try:
+        ct = ContentType.objects.get(app_label=app_label, model=model_slug)
+    except ContentType.DoesNotExist:
+        raise Http404(u'Content type not found.')
+
     model_class = ct.model_class()
     registry = utils.get_registry()
     if not model_class in registry:
         raise Http404(u'No registered model found for given query.')
+
     return model_class
 
 
