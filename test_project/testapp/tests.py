@@ -61,3 +61,5 @@ class RegressionTests(TestCase):
 
         translation.activate('ro')
         self.assertEqual(option.name, value_ro)
+
+        translation.deactivate()
