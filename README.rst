@@ -1,3 +1,9 @@
+Deprecated
+==========
+
+Important note: this package is not maintained anymore. We recommend looking at django-parler: https://pypi.python.org/pypi/django-parler
+
+
 django-datatrans
 ================
 
