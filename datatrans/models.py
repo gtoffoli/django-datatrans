@@ -5,7 +5,8 @@ from django.db import models
 from django.db.models import signals
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.auth.models import User
 
 from hashlib import sha1
 
@@ -27,7 +28,7 @@ CACHE_DURATION = getattr(settings, 'DATATRANS_CACHE_DURATION', 60 * 60)
 
 
 class KeyValueManager(models.Manager):
-    def get_queryset(self):
+    def get_query_set(self):
         return KeyValueQuerySet(self.model)
 
     def get_keyvalue(self, key, language, obj, field):
@@ -81,7 +82,10 @@ class KeyValueManager(models.Manager):
         Refresh the cache when saving
         """
         for key in instance.cache_keys:
-            cache.set(key, instance, CACHE_DURATION)
+            try:
+                cache.set(key, instance, CACHE_DURATION)
+            except:
+                pass
 
     def _post_delete(self, instance, **kwargs):
         self._invalidate_cache(instance)
@@ -137,7 +141,7 @@ class KeyValue(models.Model):
     """
     content_type = models.ForeignKey(ContentType, null=True)
     object_id = models.PositiveIntegerField(null=True, default=None)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     field = models.CharField(max_length=255)
     language = models.CharField(max_length=5, db_index=True, choices=settings.LANGUAGES)
 
@@ -147,14 +151,14 @@ class KeyValue(models.Model):
 
     digest = models.CharField(max_length=40, db_index=True)
     updated = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, null=True)
 
     objects = KeyValueManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s: %s' % (self.language, self.value)
 
     class Meta:
-        #unique_together = ('digest', 'language')
         unique_together = ('language', 'content_type', 'field', 'object_id', 'digest')
 
 
@@ -173,6 +177,7 @@ class ModelWordCount(WordCount):
     """
     Caches the total number of localized words for a model
     """
+    # content_type = models.ForeignKey(ContentType, db_index=True, unique=True)
     content_type = models.OneToOneField(ContentType, db_index=True)
 
 

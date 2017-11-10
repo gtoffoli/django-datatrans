@@ -1,6 +1,6 @@
 {% extends "datatrans/base.html" %}
-{% load i18n static %}
-{% load url from future %}
+{% load i18n %}
+{% load staticfiles %}
 {% block title %}{% trans "Translations for" %} {{ model }} - {{ block.super }}{% endblock %}
 {% block breadcrumbs %}
     {{ block.super }}
@@ -31,7 +31,7 @@
 <div style="width: 128px; position: fixed; right: 8px; top: 72px; border: 1px solid #CCC; padding: 8px; background: #FFF;">
     {% blocktrans with progress.0 as percent and progress.1 as done and progress.2 as total %}Progress: {{ percent }}% ({{ done }}/{{ total }}){% endblocktrans %}
     <div style="width: 64px; border: 1px solid #CCC; margin: 0; padding: 0;">
-        <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE url({% static 'admin/img/default-bg.gif' %}) repeat-x;"></div>
+        <div style="margin: 0; padding: 0; width: {% widthratio progress.0 100 64 %}px; height: 12px; background: #ACE url({% static 'admin/img/admin/default-bg.gif' %}) repeat-x;"></div>
     </div>
 </div>
 <p>

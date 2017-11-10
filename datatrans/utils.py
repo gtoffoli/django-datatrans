@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
 import operator
-import django
-from collections import OrderedDict
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.utils import translation
+from collections import OrderedDict
 from django.contrib.contenttypes.models import ContentType
 
 from datatrans.models import KeyValue, make_digest, ModelWordCount, FieldWordCount
 
+translate_map = getattr(settings, 'DATATRANS_TRANSLATE_MAP', None)
 
 """
 REGISTRY is a dict containing the registered models and their translation
@@ -29,7 +29,6 @@ Example:
 """
 REGISTRY = OrderedDict()
 META = OrderedDict()
-
 
 def get_registry():
     return REGISTRY
@@ -111,9 +110,8 @@ def get_current_language():
     """
     Get the current language
     """
-    lang = translation.get_language()
-    if lang is None:
-        return get_default_language()
+    # lang = translation.get_language()
+    lang = translation.get_language() or 'en'
     current = [l[0] for l in settings.LANGUAGES if l[0] == lang]
     if len(current) == 0:
         lang = lang.split('-')[0]
@@ -136,9 +134,28 @@ class FieldDescriptor(object):
             return u''
         if instance.id is None:
             return key
-        return KeyValue.objects.lookup(key, lang_code, instance, self.name)
+
+        content_type = ContentType.objects.get_for_model(instance)
+        EXTENDED = translate_map and translate_map.get(content_type.model, None) and True or False
+        if not EXTENDED:
+            return KeyValue.objects.lookup(key, lang_code, instance, self.name)
+
+        if get_current_language() == instance.original_language:
+            return key        
+        keyvalues = KeyValue.objects.filter(language=lang_code, content_type_id=content_type.id, object_id=instance.pk, field=self.name).order_by('-updated')
+        if keyvalues:
+            value = keyvalues[0].value
+        else:
+            value= key
+        return value
 
     def __set__(self, instance, value):
+        content_type = ContentType.objects.get_for_model(instance)
+        EXTENDED = translate_map and translate_map.get(content_type.model, None) and True or False
+        if EXTENDED:
+            instance.__dict__[self.name] = value
+            return None
+
         lang_code = get_current_language()
         default_lang = get_default_language()
 
@@ -159,6 +176,18 @@ class FieldDescriptor(object):
 
 
 def _pre_save(sender, instance, **kwargs):
+    EXTENDED = translate_map and translate_map.get(ContentType.objects.get_for_model(sender).model, None) and True or False
+    if EXTENDED:
+        ct = ContentType.objects.get_for_model(sender)
+        register = get_registry()
+        fields = register[sender].values()
+        for field in fields:
+            if EXTENDED:
+                keyvalues = KeyValue.objects.filter(content_type_id=ct.id, object_id=instance.pk, field=field.name, language=get_current_language()).order_by('-updated')
+                for keyvalue in keyvalues:
+                    keyvalue.delete()
+        return
+
     setattr(instance, 'datatrans_old_language', get_current_language())
     default_lang = get_default_language()
     translation.activate(default_lang)
@@ -210,8 +239,11 @@ def _pre_save(sender, instance, **kwargs):
 
 
 def _post_save(sender, instance, created, **kwargs):
-    translation.activate(getattr(instance, 'datatrans_old_language',
-                                 get_default_language()))
+    EXTENDED = translate_map and translate_map.get(ContentType.objects.get_for_model(sender).model, None) and True or False
+    if not EXTENDED:
+        translation.activate(getattr(instance, 'datatrans_old_language',
+                                     get_default_language()))
+        return
 
 
 def _datatrans_filter(self, language=None, mode='and', **kwargs):
@@ -328,12 +360,8 @@ def register(model, modeltranslation):
 
     if not model in REGISTRY:
         # create a fields dict (models apparently lack this?!)
-        if django.VERSION >= (1, 6):
-            # In 1.6, '_fields()' does not exist anymore; in 1.5 both exists and
-            # in 1.4, '.fields' doesn't exist yet.
-            fields = dict([(f.name, f) for f in model._meta.fields if f.name in modeltranslation.fields])
-        else:
-            fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
+        # fields = dict([(f.name, f) for f in model._meta._fields() if f.name in modeltranslation.fields])
+        fields = dict([(f.name, f) for f in model._meta.fields if f.name in modeltranslation.fields])
 
         REGISTRY[model] = fields
         META[model] = modeltranslation
