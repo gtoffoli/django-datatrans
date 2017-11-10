@@ -1,3 +1,10 @@
+New project
+===========
+
+This repository has just been born by importing from https://github.com/vikingco/django-datatrans (Latest commit e60cbf4 on Apr 27, 2016).
+I plan to port datatrans to Python 3 and to include some important extensions that already in use inside a large multi-language platform: see http://www.commonspaces.eu/it/info/i18n/ .
+For now I left unchanged the remaining part of this README.
+
 Deprecated
 ==========
 
