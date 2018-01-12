@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('fuzzy', models.BooleanField(default=False)),
                 ('digest', models.CharField(max_length=40, db_index=True)),
                 ('updated', models.DateTimeField(default=datetime.datetime.now, auto_now=True)),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType', null=True)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', on_delete=models.CASCADE, null=True)),
             ],
             options={
             },
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('total_words', models.IntegerField(default=0)),
                 ('valid', models.BooleanField(default=False)),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType', unique=True)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', on_delete=models.CASCADE, unique=True)),
             ],
             options={
                 'abstract': False,
