@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('total_words', models.IntegerField(default=0)),
                 ('valid', models.BooleanField(default=False)),
                 ('field', models.CharField(max_length=64, db_index=True)),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', on_delete=models.CASCADE)),
             ],
             options={
             },
