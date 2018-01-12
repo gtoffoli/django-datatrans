@@ -139,7 +139,7 @@ class KeyValue(models.Model):
     """
     The datatrans magic is stored in this model. It stores the localized fields of models.
     """
-    content_type = models.ForeignKey(ContentType, null=True)
+    content_type = models.ForeignKey(ContentType, models.CASCADE, null=True)
     object_id = models.PositiveIntegerField(null=True, default=None)
     content_object = GenericForeignKey('content_type', 'object_id')
     field = models.CharField(max_length=255)
@@ -151,7 +151,7 @@ class KeyValue(models.Model):
 
     digest = models.CharField(max_length=40, db_index=True)
     updated = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, models.SET_NULL, null=True)
 
     objects = KeyValueManager()
 
@@ -178,7 +178,7 @@ class ModelWordCount(WordCount):
     Caches the total number of localized words for a model
     """
     # content_type = models.ForeignKey(ContentType, db_index=True, unique=True)
-    content_type = models.OneToOneField(ContentType, db_index=True)
+    content_type = models.OneToOneField(ContentType, models.CASCADE, db_index=True)
 
 
 class FieldWordCount(WordCount):
@@ -188,7 +188,7 @@ class FieldWordCount(WordCount):
     class Meta:
         unique_together = ('content_type', 'field')
 
-    content_type = models.ForeignKey(ContentType, db_index=True)
+    content_type = models.ForeignKey(ContentType, models.CASCADE, db_index=True)
     field = models.CharField(max_length=64, db_index=True)
 
 
