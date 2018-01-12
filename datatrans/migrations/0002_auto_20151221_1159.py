@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='modelwordcount',
             name='content_type',
-            field=models.OneToOneField(to='contenttypes.ContentType'),
+            field=models.OneToOneField(models.CASCADE, to='contenttypes.ContentType'),
             preserve_default=True,
         ),
     ]
