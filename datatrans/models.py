@@ -4,6 +4,7 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models import signals
 from django.db.models.query import QuerySet
+from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
@@ -135,11 +136,12 @@ class KeyValueQuerySet(QuerySet):
         return super(KeyValueQuerySet, self).get(*args, **kwargs)
 
 
+@python_2_unicode_compatible
 class KeyValue(models.Model):
     """
     The datatrans magic is stored in this model. It stores the localized fields of models.
     """
-    content_type = models.ForeignKey(ContentType, models.CASCADE, null=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
     object_id = models.PositiveIntegerField(null=True, default=None)
     content_object = GenericForeignKey('content_type', 'object_id')
     field = models.CharField(max_length=255)
@@ -151,12 +153,13 @@ class KeyValue(models.Model):
 
     digest = models.CharField(max_length=40, db_index=True)
     updated = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(User, models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     objects = KeyValueManager()
 
     def __str__(self):
-        return u'%s: %s' % (self.language, self.value)
+        # return u'%s: %s' % (self.language, self.value)
+        return '%s: %s' % (self.language, self.value)
 
     class Meta:
         unique_together = ('language', 'content_type', 'field', 'object_id', 'digest')
@@ -178,7 +181,7 @@ class ModelWordCount(WordCount):
     Caches the total number of localized words for a model
     """
     # content_type = models.ForeignKey(ContentType, db_index=True, unique=True)
-    content_type = models.OneToOneField(ContentType, models.CASCADE, db_index=True)
+    content_type = models.OneToOneField(ContentType, on_delete=models.CASCADE, db_index=True)
 
 
 class FieldWordCount(WordCount):
@@ -188,7 +191,7 @@ class FieldWordCount(WordCount):
     class Meta:
         unique_together = ('content_type', 'field')
 
-    content_type = models.ForeignKey(ContentType, models.CASCADE, db_index=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, db_index=True)
     field = models.CharField(max_length=64, db_index=True)
 
 

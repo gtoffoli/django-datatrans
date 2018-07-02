@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, Http404
-# from django.core.urlresolvers import reverse
-from django.urls import reverse
+try:
+    from django.urls import reverse
+except:
+    from django.core.urlresolvers import reverse
 from django.template.context import RequestContext
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
