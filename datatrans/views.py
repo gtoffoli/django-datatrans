@@ -252,6 +252,7 @@ def translate(request, model, pk, app_label=''):
     languages = getattr(settings, 'LANGUAGES', [])
     if len(languages) < 2:
         raise Http404(u'No multiple languages in setting.')
+    user = request.user
     context = {}
     action_url = '/datatrans/translate/%s/%s/' % (model, pk)
     content_type = ContentType.objects.get(model=model)
@@ -295,7 +296,7 @@ def translate(request, model, pk, app_label=''):
                         keyvalue.value = new_value
                         keyvalue.edited = True
                         keyvalue.fuzzy = False
-                        keyvalue.user = request.user
+                        keyvalue.user = user
                         keyvalue.save()
                         if keyvalues.count() > 1:
                             for keyvalue in keyvalues[1:]:
@@ -306,15 +307,21 @@ def translate(request, model, pk, app_label=''):
                 else:
                     if new_value:
                         keyvalue = KeyValue(content_type=content_type, object_id=int(pk), field=field_name, language=language_code, value=new_value, updated=True, fuzzy=False)
-                        keyvalue.user = request.user
+                        keyvalue.user = user
                         keyvalue.save()
             else:
                 raise Http404(u'?')
+    original_language = object.original_language
+    if original_language:
+        try:
+            user_languages = user.get_languages()
+            languages = [l for l in languages if l[0]==original_language or l[0] in user_languages]
+        except:
+            pass
     current_language = get_current_language()
     context['current_language_code'] = current_language
     context['current_language_name'] = dict(settings.LANGUAGES).get(current_language, _('unknown'))
     context['object'] = object
-    original_language = object.original_language
     context['original_language'] = original_language
     context['model'] = model
     context['model_title'] = model_class._meta.verbose_name
