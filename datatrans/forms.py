@@ -2,14 +2,15 @@ import copy
 
 from django.conf import settings
 from django import forms
-# from django.utils.translation import ugettext_lazy as _, string_concat
 from django.utils.translation import ugettext_lazy as _
+"""
 if settings.DJANGO_VERSION == 1:
     from django.utils.translation import string_concat
 if settings.DJANGO_VERSION == 2:
-    from django.utils.text import format_lazy
-    def string_concat(*strings):
-        return format_lazy('{}' * len(strings), *strings)
+"""
+from django.utils.text import format_lazy
+def string_concat(*strings):
+    return format_lazy('{}' * len(strings), *strings)
 
 class ModelTranslationForm(forms.Form):
     def __init__(self, *args, **kwargs):

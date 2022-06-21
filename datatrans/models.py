@@ -1,10 +1,10 @@
-import datetime
+# import datetime
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
 from django.db.models import signals
 from django.db.models.query import QuerySet
-from django.utils.encoding import python_2_unicode_compatible
+# from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
@@ -136,7 +136,7 @@ class KeyValueQuerySet(QuerySet):
         return super(KeyValueQuerySet, self).get(*args, **kwargs)
 
 
-@python_2_unicode_compatible
+# @python_2_unicode_compatible
 class KeyValue(models.Model):
     """
     The datatrans magic is stored in this model. It stores the localized fields of models.
@@ -174,6 +174,9 @@ class WordCount(models.Model):
 
     total_words = models.IntegerField(default=0)
     valid = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{}'.format(self.total_words)
 
 
 class ModelWordCount(WordCount):
